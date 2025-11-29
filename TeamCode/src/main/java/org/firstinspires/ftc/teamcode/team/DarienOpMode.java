@@ -42,7 +42,7 @@ public class DarienOpMode extends LinearOpMode {
     public Servo TrayServo;
     public Servo Elevator;
     public Servo Feeder;
-    public Servo IntakeServo;
+    //public Servo IntakeServo;
     public DcMotor ejectionMotorRight;
     public DcMotor ejectionMotorLeft;
     public NormalizedColorSensor intakeColorSensor;
@@ -81,15 +81,15 @@ public class DarienOpMode extends LinearOpMode {
     public double currentTrayPosition;
     public static double INTAKE_DISTANCE = 5;//in CM
     public static double INTAKE_TIME = 1;
-    public static double ELEVATOR_POS_UP = 0.83;
+    public static double ELEVATOR_POS_UP = 0.9;
     public static double ELEVATOR_POS_DOWN = 0.45;
-    public static double FEEDER_POS_UP = .9;
-    public static double FEEDER_POS_DOWN = .45;
+    public static double FEEDER_POS_UP = .45;
+    public static double FEEDER_POS_DOWN = .9;
     public static double SHOT_GUN_POWER_UP = 1;
 
     public static double EJECTION_MOTOR_POWER_BACKWARDS = 0.2;
 
-    public static double EJECTION_MOTOR_POWER = 0.82;
+    public static double EJECTION_MOTOR_POWER = 0.85;
     public double TIMEOUT_APRILTAG_DETECTION = 3; // seconds
     public static double INTAKE_RUBBER_BANDS_POWER = -0.7;
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.2;
@@ -114,14 +114,14 @@ public class DarienOpMode extends LinearOpMode {
 
         // INITIALIZE SERVOS
         //claw = hardwareMap.get(Servo.class, "claw");
-       /* TrayServo = hardwareMap.get(Servo.class, "Tray");
+        TrayServo = hardwareMap.get(Servo.class, "Tray");
         Elevator = hardwareMap.get(Servo.class, "Elevator");
-        IntakeServo = hardwareMap.get(Servo.class, "intakeServo");
+       // IntakeServo = hardwareMap.get(Servo.class, "intakeServo");
         Feeder = hardwareMap.get(Servo.class, "Feeder");
-        rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
+        //rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
         // INITIALIZE SENSORS
-        intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
-        */
+        //intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
+
         // INITIALIZE MOTORS
         omniMotor0 = initializeMotor("omniMotor0");
         omniMotor1 = initializeMotor("omniMotor1");
@@ -315,7 +315,7 @@ public class DarienOpMode extends LinearOpMode {
         double currentPos;
         double startTime = getRuntime();
         double currentTime = startTime;
-        //double Last_Time = currentTime;
+        double Last_Time = currentTime;
         double ActualPos = 0;
         while (currentTime - startTime < endDuration) {
             if(endPos > startPos){
@@ -327,14 +327,16 @@ public class DarienOpMode extends LinearOpMode {
             }
             servo.setPosition(currentPos/divisor);
             currentTrayPosition = currentPos / divisor;
-            /*
+
+
+
             if (currentTime - Last_Time >= 0.240 ){
                 servo.setPosition(currentPos);
                 ActualPos = currentPos;
                 Last_Time = currentTime;
             }
 
-             */
+
             telemetry.addData("currentPos:", currentPos);
             telemetry.addData("currentTime:", currentTime);
             telemetry.update();

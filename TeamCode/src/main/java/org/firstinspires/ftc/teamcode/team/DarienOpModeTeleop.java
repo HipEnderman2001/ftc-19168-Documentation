@@ -148,8 +148,8 @@ public class DarienOpModeTeleop extends DarienOpMode {
     /**
      * Macro to shoot artifacts once the tray is in the shoot position.
      */
-    @Override
-    public void shootArtifact() {
+   // @Override
+   // public void shootArtifact() {
         /*
         if (shootArtifactState == 0) {
             shootArtifactStartTime = getRuntime();
@@ -178,4 +178,3 @@ public class DarienOpModeTeleop extends DarienOpMode {
          */
     }
 
-}
