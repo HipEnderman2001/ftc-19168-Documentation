@@ -42,11 +42,11 @@ public class DarienOpMode extends LinearOpMode {
     public Servo TrayServo;
     public Servo Elevator;
     public Servo Feeder;
-    //public Servo IntakeServo;
+    public Servo IntakeServo;
     public DcMotor ejectionMotorRight;
     public DcMotor ejectionMotorLeft;
     public NormalizedColorSensor intakeColorSensor;
-    //public CRServo rubberBands;
+    public CRServo rubberBands;
 
     //    public IMU imu;
    // public GoBildaPinpointDriver odo;
@@ -69,32 +69,34 @@ public class DarienOpMode extends LinearOpMode {
 
     public static double INTAKE_SERVO_POS_UP = 0.75;
     public static double INTAKE_SERVO_POS_DOWN = 0.21;
-    public static double TRAY_POS_1_INTAKE = 0.23;
-    public static double TRAY_POS_2_INTAKE = 0.8;
-    public static double TRAY_POS_3_INTAKE = 0.54;
-    public static double TRAY_POS_1_SCORE = .67;
-    public static double TRAY_POS_2_SCORE = 0.38;
-    public static double TRAY_POS_3_SCORE = 0.08;
+    public static double INTAKE_SERVO_DURATION_RAISE = 1; // seconds
+    public static double TRAY_POS_1_INTAKE = 0.275;
+    public static double TRAY_POS_2_INTAKE = 0.205;
+    public static double TRAY_POS_3_INTAKE = 0.350;
+    public static double TRAY_POS_1_SCORE = 0.385;
+    public static double TRAY_POS_2_SCORE = 0.310;
+    public static double TRAY_POS_3_SCORE = 0.240;
     double IntakeServoPosition = 0;
     double startTimeIntakeServo = 0;
     boolean isIntakeServoMoving = false;
     public double currentTrayPosition;
     public static double INTAKE_DISTANCE = 5;//in CM
     public static double INTAKE_TIME = 1;
-    public static double ELEVATOR_POS_UP = 0.9;
+    public static double ELEVATOR_POS_UP = 0.83;
     public static double ELEVATOR_POS_DOWN = 0.45;
-    public static double FEEDER_POS_UP = .45;
-    public static double FEEDER_POS_DOWN = .9;
-    public static double SHOT_GUN_POWER_UP = 1;
+    public static double FEEDER_POS_UP = .9;
+    public static double FEEDER_POS_DOWN = .45;
+    public static double SHOT_GUN_POWER_UP = 0.32; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_FAR = 0.39; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
 
-    public static double EJECTION_MOTOR_POWER_BACKWARDS = 0.2;
-
-    public static double EJECTION_MOTOR_POWER = 0.85;
     public double TIMEOUT_APRILTAG_DETECTION = 3; // seconds
     public static double INTAKE_RUBBER_BANDS_POWER = -0.7;
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.2;
 
     double startTimeIntakeColorSensor;
+    public boolean intakeLifted = false;
+    public double intakeLiftStartTime = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -116,12 +118,11 @@ public class DarienOpMode extends LinearOpMode {
         //claw = hardwareMap.get(Servo.class, "claw");
         TrayServo = hardwareMap.get(Servo.class, "Tray");
         Elevator = hardwareMap.get(Servo.class, "Elevator");
-       // IntakeServo = hardwareMap.get(Servo.class, "intakeServo");
+        IntakeServo = hardwareMap.get(Servo.class, "intakeServo");
         Feeder = hardwareMap.get(Servo.class, "Feeder");
-        //rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
+        rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
         // INITIALIZE SENSORS
-        //intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
-
+        intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
         // INITIALIZE MOTORS
         omniMotor0 = initializeMotor("omniMotor0");
         omniMotor1 = initializeMotor("omniMotor1");
@@ -135,10 +136,9 @@ public class DarienOpMode extends LinearOpMode {
         omniMotor2.setDirection(DcMotor.Direction.REVERSE);
         omniMotor3.setDirection(DcMotor.Direction.FORWARD);
 
-      //  initAprilTag();
+        initAprilTag();
 
         startTimeIntakeColorSensor = getRuntime();
-
         telemetry.addLine("FTC 19168 Robot Initialization Done!");
         telemetry.update();
     }
@@ -167,7 +167,7 @@ public class DarienOpMode extends LinearOpMode {
          */
     }
 
-    /*public void shootArtifact() {
+    public void shootArtifact() {
      Elevator.setPosition(ELEVATOR_POS_UP);
      //shotGun(SHOT_GUN_POWER_DOWN);
      //start spinning down
@@ -183,113 +183,6 @@ public class DarienOpMode extends LinearOpMode {
      Feeder.setPosition(FEEDER_POS_DOWN);
      Elevator.setPosition(ELEVATOR_POS_DOWN);
     }
-     */
-
-    public void setBreakpoint() {
-        while (!gamepad1.x) {
-        }
-    }
-
-    // ===============================
-//   SHOOTING STATE MACHINE
-// ===============================
-
-    public enum ShootingStage {
-        IDLE,
-        ELEVATOR_UP,
-        SHOTGUN_SPINUP,
-        FEEDER_UP,
-        FINISHED
-    }
-
-    private ShootingStage shootingStage = ShootingStage.IDLE;
-    private double shootingStartTime = 0;
-
-    // Timings (seconds)
-    private static final double STAGE1_DELAY = .100;    // elevator up -> shotgun start
-    private static final double STAGE2_DELAY = .600;    // shotgun running before feeder
-    private static final double STAGE3_DELAY = .500;    // feeder up while spinning
-
-    // Call this to begin shooting
-   /* public void startShooting() {
-        shootingStage = ShootingStage.ELEVATOR_UP;
-        shootingStartTime = getRuntime();
-
-        Elevator.setPosition(ELEVATOR_POS_UP);
-    }
-    */
-
-    // Call this inside loop() or inside your main auto while-loop
-  /*  public void updateShooting(double shootingPower) {
-        if (shootingStage == ShootingStage.IDLE ||
-                shootingStage == ShootingStage.FINISHED) {
-            return;
-        }
-
-        double elapsed = getRuntime() - shootingStartTime;
-
-        switch (shootingStage) {
-
-            case ELEVATOR_UP:
-                if (elapsed >= STAGE1_DELAY) {
-                    shotGun(SHOT_GUN_POWER_UP * shootingPower);
-                    shootingStage = ShootingStage.SHOTGUN_SPINUP;
-                }
-                break;
-
-            case SHOTGUN_SPINUP:
-                if (elapsed >= STAGE1_DELAY + STAGE2_DELAY) {
-                    Feeder.setPosition(FEEDER_POS_UP);
-                    shootingStage = ShootingStage.FEEDER_UP;
-                }
-                break;
-
-            case FEEDER_UP:
-                if (elapsed >= STAGE1_DELAY + STAGE2_DELAY + STAGE3_DELAY) {
-                    shotGunStop();
-                    Feeder.setPosition(FEEDER_POS_DOWN);
-                    Elevator.setPosition(ELEVATOR_POS_DOWN);
-                    shootingStage = ShootingStage.FINISHED;
-                }
-                break;
-        }
-    }
-
-   */
-
-    // Use this to check if it is done
-    public boolean shootingDone() {
-        return shootingStage == ShootingStage.FINISHED;
-    }
-
-    // If you want a hard reset:
-    public void resetShooting() {
-        shootingStage = ShootingStage.IDLE;
-    }
-
-   /* /**
-     * Set the tray position and update the currentTrayPosition variable.
-     *
-     * @param position The desired position for the tray servo.
-     */
-
-    /*public void setTrayPosition(double position) {
-        TrayServo.setPosition(position);
-        currentTrayPosition = position;
-    }
-
-    public void runIntakeLifterWithColorSensor() {
-        if (intakeColorSensor instanceof DistanceSensor) {
-            if (((DistanceSensor) intakeColorSensor).getDistance(DistanceUnit.CM) <= INTAKE_DISTANCE && (getRuntime() - startTimeIntakeColorSensor) >= 1) {
-                startTimeIntakeColorSensor = getRuntime();
-                servoIncremental(IntakeServo, INTAKE_SERVO_POS_UP, INTAKE_SERVO_POS_DOWN, 1, 1);
-            } else {
-                IntakeServo.setPosition(INTAKE_SERVO_POS_DOWN);
-            }
-        }
-    }
-
-     */
 
     public void print(String Name, Object message) {
         //saves a line for quick debug messages
@@ -315,7 +208,7 @@ public class DarienOpMode extends LinearOpMode {
         double currentPos;
         double startTime = getRuntime();
         double currentTime = startTime;
-        double Last_Time = currentTime;
+        //double Last_Time = currentTime;
         double ActualPos = 0;
         while (currentTime - startTime < endDuration) {
             if(endPos > startPos){
@@ -326,17 +219,14 @@ public class DarienOpMode extends LinearOpMode {
                 currentPos = ((startPos - endPos) / (endDuration - (currentTime - startTime))) * (currentTime - startTime) + endPos;
             }
             servo.setPosition(currentPos/divisor);
-            currentTrayPosition = currentPos / divisor;
-
-
-
+            /*
             if (currentTime - Last_Time >= 0.240 ){
                 servo.setPosition(currentPos);
                 ActualPos = currentPos;
                 Last_Time = currentTime;
             }
 
-
+             */
             telemetry.addData("currentPos:", currentPos);
             telemetry.addData("currentTime:", currentTime);
             telemetry.update();
@@ -344,7 +234,6 @@ public class DarienOpMode extends LinearOpMode {
             tp.put("currentTime",currentTime);
             //tp.put("lastTime",Last_Time);
             tp.put("ActPos",ActualPos);
-
 
             dash.sendTelemetryPacket(tp);
 
@@ -359,9 +248,21 @@ public class DarienOpMode extends LinearOpMode {
     }
 
     /**
+     * Set the tray position and update the currentTrayPosition variable.
+     *
+     * @param position The desired position for the tray servo.
+     * @param duration The duration over which to move the tray servo to the desired position.
+     */
+    public void setTrayPosition(double position) {
+        TrayServo.setPosition(position);
+        currentTrayPosition = position;
+    }
+
+
+    /**
      * Initialize the AprilTag processor.
      */
- /*   private void initAprilTag() {
+    private void initAprilTag() {
 
         // Create the AprilTag processor the easy way.
         aprilTag = AprilTagProcessor.easyCreateWithDefaults();
@@ -371,8 +272,6 @@ public class DarienOpMode extends LinearOpMode {
                 hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
 
     }
-
-  */
 
     protected void telemetryAprilTag() {
 
@@ -414,7 +313,7 @@ public class DarienOpMode extends LinearOpMode {
     /**
      * Shoot the correct pattern by using the readApriltagSequence function
      */
-    /*public void shootApriltagSequence(ArrayList<AprilTagDetection> currentDetections) {
+    public void shootApriltagSequence(ArrayList<AprilTagDetection> currentDetections) {
         for (AprilTagDetection detection : currentDetections) {
             if (detection.metadata != null) {
                 switch (detection.id) {
@@ -492,8 +391,6 @@ public class DarienOpMode extends LinearOpMode {
         }
     }
 
-     */
-
 
     // CONTROL: INTAKE
     public void automaticIntake() {
@@ -506,7 +403,7 @@ public class DarienOpMode extends LinearOpMode {
             .addData("Blue", "%.3f", colors.blue);
 
      */
-     /*   if (intakeColorSensor instanceof DistanceSensor) {
+        if (intakeColorSensor instanceof DistanceSensor) {
             //telemetry.addData("Distance (cm)", "%.3f", ((DistanceSensor) intakeColorSensor).getDistance(DistanceUnit.CM));
             if (((DistanceSensor)intakeColorSensor).getDistance(DistanceUnit.CM) <= INTAKE_DISTANCE && (getRuntime()-startTimeColor) >= 1){
                 startTimeColor = getRuntime();
@@ -514,8 +411,6 @@ public class DarienOpMode extends LinearOpMode {
             }
         }
         //telemetry.update();
-
-      */
     }
 
     public double getHypotenuse(double x, double y) {
@@ -528,6 +423,13 @@ public class DarienOpMode extends LinearOpMode {
 
     public static double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
+    }
+
+    public double getVoltageAdjustedMotorPower(double power) {
+        double nominalVoltage = 13.0; // Typical full battery voltage for FTC
+        double currentVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
+        double scale = nominalVoltage / currentVoltage;
+        return power * scale;
     }
 
 }

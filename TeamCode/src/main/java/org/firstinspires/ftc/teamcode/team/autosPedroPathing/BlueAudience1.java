@@ -14,9 +14,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 
-@Autonomous(name = "RedAudienceSidePedro", group = "Pedro:Reds", preselectTeleOp = "TeleopFSM")
+@Autonomous(name = "BlueAudienceSidePedro", group = "Pedro:Blues", preselectTeleOp = "TeleopFSM")
 @Configurable
-public class RedAudience1 extends DarienOpModeFSM {
+public class BlueAudience1 extends DarienOpModeFSM {
     private TelemetryManager panelsTelemetry;   // Panels Telemetry instance
     public Follower follower;                   // Pedro Pathing follower instance
     private int pathState;                      // State machine state
@@ -38,7 +38,7 @@ public class RedAudience1 extends DarienOpModeFSM {
 
         follower = Constants.createFollower(hardwareMap);
         // Starting pose – same as your OpMode version
-        follower.setStartingPose(new Pose(88, 9, Math.toRadians(90)));
+        follower.setStartingPose(new Pose(56, 9, Math.toRadians(90)));
 
         // Build all the paths once
         paths = new Paths(follower);
@@ -110,23 +110,23 @@ public class RedAudience1 extends DarienOpModeFSM {
             ShootingPosition = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(88.000, 9.000), new Pose(88.000, 18.000))
+                            new BezierLine(new Pose(56.000, 9.000), new Pose(56.000, 18.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(68))
+                    .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(112))
                     .build();
 
             IntakePosition = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(88.000, 18.000), new Pose(101.000, 33.0))
+                            new BezierLine(new Pose(56.000, 18.000), new Pose(42.000, 35.750))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(68), Math.toRadians(0))
+                    .setLinearHeadingInterpolation(Math.toRadians(112), Math.toRadians(180))
                     .build();
 
             Intake1 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(101.000, 33.0), new Pose(106.000, 33.0))
+                            new BezierLine(new Pose(42.000, 35.750), new Pose(34.000, 35.750))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -134,7 +134,7 @@ public class RedAudience1 extends DarienOpModeFSM {
             Intake2 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(106.000, 33.0), new Pose(111.000, 33.0))
+                            new BezierLine(new Pose(34.000, 35.750), new Pose(29.000, 35.750))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -142,7 +142,7 @@ public class RedAudience1 extends DarienOpModeFSM {
             Intake3 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(111.000, 33.0), new Pose(116.000, 33.0))
+                            new BezierLine(new Pose(29.000, 35.750), new Pose(24.000, 35.750))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -151,20 +151,20 @@ public class RedAudience1 extends DarienOpModeFSM {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(116.000, 33.0),
-                                    new Pose(107.000, 34.000),
-                                    new Pose(88.000, 18.000)
+                                    new Pose(24.000, 35.750),
+                                    new Pose(45.000, 29.000),
+                                    new Pose(56.000, 18.000)
                             )
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(68))
+                    .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(113.5))
                     .build();
 
             Parking = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(88.000, 18.000), new Pose(88.000, 31.000))
+                            new BezierLine(new Pose(56.000, 18.000), new Pose(56.000, 29.000))
                     )
-                    .setLinearHeadingInterpolation(Math.toRadians(68), Math.toRadians(180))
+                    .setLinearHeadingInterpolation(Math.toRadians(113.5), Math.toRadians(90))
                     .build();
         }
     }
