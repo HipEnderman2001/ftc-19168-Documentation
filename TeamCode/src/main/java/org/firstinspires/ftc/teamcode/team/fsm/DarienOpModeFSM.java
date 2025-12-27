@@ -215,6 +215,12 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     }
 
+    /**
+     * Adjust motor power based on current battery voltage to maintain consistent performance.
+     *
+     * @param power The desired motor power (range -1.0 to 1.0).
+     * @return The adjusted motor power.
+     */
     public double getVoltageAdjustedMotorPower(double power) {
         double nominalVoltage = 13.0; // Typical full battery voltage for FTC
         double currentVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
@@ -222,9 +228,17 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         return power * scale;
     }
 
+    /** Clamp a value between a minimum and maximum.
+     *
+     * @param val The value to clamp.
+     * @param min The minimum value.
+     * @param max The maximum value.
+     * @return if val<min = min,if min<val<max = val, if val>max = max
+     */
     public static double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
     }
+
     //goal: automate intake as much as possible, save tray positions, checking if there are balls in either of 3 slots, not just yes not but color aswell, automate intake, sensor checks if ball is in, then rotate, intake etc...
    /* public void intakeColorSensorTelemetry() {
         if (intakeColorSensor == null) {
