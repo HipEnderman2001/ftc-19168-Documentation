@@ -55,7 +55,7 @@ public class TrayFSM {
     public static double SETTLE_TIME = 0.3;    // how long to wait after moving servo before checking
     // How long to ignore sensor input after commanding the servo to move (seconds).
     // Set this slightly longer than the servo travel time to avoid seeing balls that pass under the sensor during rotation.
-    public static double SERVO_IGNORE_DURATION = 0.5;
+    public static double SERVO_IGNORE_DURATION = 0.7;
 
     // Whether to wait indefinitely for an artifact (true) or use timeout to skip (false)
     public static boolean WAIT_FOR_ARTIFACT = true;
@@ -81,6 +81,10 @@ public class TrayFSM {
     public static float LOW_LIGHT_RELATIVE_FACTOR = 1.1f;
     // Minimum total normalized intensity (red+green+blue) to consider the relative heuristic
     public static float LOW_LIGHT_MIN_TOTAL = 0.005f;
+
+    // After a ball is detected and the intake motors stop, wait this many seconds for the ball to settle
+    // into the tray slot before rotating to the next slot. Tunable via Dashboard.
+    public static double BALL_SETTLE_TIME = 0.5;
 
     // Sliding-window detection
     private final int windowSize = 5; // number of recent samples to consider
@@ -214,44 +218,54 @@ public class TrayFSM {
                 // Determine if either color meets the required detections
                 if (countPurple >= REQUIRED_DETECTIONS || countGreen >= REQUIRED_DETECTIONS) {
                     SlotState accepted = (countPurple >= countGreen) ? SlotState.PURPLE : SlotState.GREEN;
-                    // Ball detected reliably — stop intake, record, move to next slot
+                    // Ball detected reliably — stop intake and record it, but wait before rotating so the
+                    // ball can settle into the slot.
                     rubberBands.setPower(0.0);
                     intakeRoller.setPower(0.0);
                     slots[currentSlotIndex] = accepted;
                     telemetry.addData("Slot " + (currentSlotIndex + 1), slots[currentSlotIndex].toString());
-                    // Move to next empty slot
+                    // Determine next empty slot index. We will move there after BALL_SETTLE_TIME.
                     int next = findNextEmptySlot(currentSlotIndex + 1);
                     if (next < 0) {
                         state = State.DONE;
                     } else {
                         currentSlotIndex = next;
-                        moveToSlot(currentSlotIndex);
-                        state = State.POSITION_TO_SLOT;
+                        // enter settling state; CHECK_SLOT will handle the post-detection delay
+                        state = State.CHECK_SLOT;
                         stateStartTime = timer.seconds();
+                        telemetry.addData("State", "POST_DETECT_SETTLE slot=%d", currentSlotIndex + 1);
                     }
                 } else if (!WAIT_FOR_ARTIFACT && timer.seconds() - stateStartTime >= INTAKE_TIMEOUT) {
-                    // Timeout behavior only used when waitForArtifact is false.
-                    // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
-                    rubberBands.setPower(0.0);
-                    intakeRoller.setPower(0.0);
-                    slots[currentSlotIndex] = SlotState.EMPTY;
-                    int next = findNextEmptySlot(currentSlotIndex + 1);
-                    if (next < 0) {
-                        state = State.DONE;
-                    } else {
-                        currentSlotIndex = next;
-                        moveToSlot(currentSlotIndex);
-                        state = State.POSITION_TO_SLOT;
-                        stateStartTime = timer.seconds();
-                    }
-                } else {
-                    telemetry.addData("IntakeWaiting", "slot=%d time=%.2f", currentSlotIndex + 1, timer.seconds() - stateStartTime);
-                }
-                break;
+                     // Timeout behavior only used when waitForArtifact is false.
+                     // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
+                     rubberBands.setPower(0.0);
+                     intakeRoller.setPower(0.0);
+                     slots[currentSlotIndex] = SlotState.EMPTY;
+                     int next = findNextEmptySlot(currentSlotIndex + 1);
+                     if (next < 0) {
+                         state = State.DONE;
+                     } else {
+                         currentSlotIndex = next;
+                         moveToSlot(currentSlotIndex);
+                         state = State.POSITION_TO_SLOT;
+                         stateStartTime = timer.seconds();
+                     }
+                 } else {
+                     telemetry.addData("IntakeWaiting", "slot=%d time=%.2f", currentSlotIndex + 1, timer.seconds() - stateStartTime);
+                 }
+                 break;
 
             case CHECK_SLOT:
-                // Not used in this simple flow (kept for extensibility)
-                state = State.DONE;
+                // Post-detection settle: wait BALL_SETTLE_TIME to allow the ball to settle in the tray
+                if (timer.seconds() - stateStartTime >= BALL_SETTLE_TIME) {
+                    // After settling, move to the next empty intake slot
+                    moveToSlot(currentSlotIndex);
+                    state = State.POSITION_TO_SLOT;
+                    stateStartTime = timer.seconds();
+                    telemetry.addData("State", "POSITION_TO_SLOT after settle slot=%d", currentSlotIndex + 1);
+                } else {
+                    telemetry.addData("State", "SETTLING for %.2fs", BALL_SETTLE_TIME - (timer.seconds() - stateStartTime));
+                }
                 break;
 
             case DONE:
