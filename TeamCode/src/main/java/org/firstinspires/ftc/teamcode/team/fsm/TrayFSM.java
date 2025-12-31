@@ -22,6 +22,8 @@ public class TrayFSM {
     public enum SlotState { EMPTY, PURPLE, GREEN, UNKNOWN }
     private enum State { IDLE, POSITION_TO_SLOT, INTAKE_WAIT, CHECK_SLOT, DONE }
 
+    private final DarienOpModeFSM opMode;
+
     private final Servo trayServo;
     private final CRServo rubberBands;      // CRServo for rubber band intake
     private final CRServo intakeRoller;     // CRServo for intake roller
@@ -29,17 +31,8 @@ public class TrayFSM {
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
 
-    // Tray positions (six known positions: three intake positions and three scoring positions)
-    // Values provided by user (DarienOpModeFSM.java)
-    public static final double TRAY_POS_1_INTAKE = 0.205;//275
-    public static final double TRAY_POS_2_INTAKE = 0.275;//205
-    public static final double TRAY_POS_3_INTAKE = 0.350;//350
-    public static final double TRAY_POS_1_SCORE  = 0.385;//385
-    public static final double TRAY_POS_2_SCORE  = 0.310;//310
-    public static final double TRAY_POS_3_SCORE  = 0.240;//240
-
     // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 1..3)
-    private final double[] slotPositions = new double[]{TRAY_POS_1_INTAKE, TRAY_POS_2_INTAKE, TRAY_POS_3_INTAKE};
+    private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_1_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE, DarienOpModeFSM.TRAY_POS_3_INTAKE};
 
     // Intake motor powers
     private double intakeRubberPower = 1.0;
@@ -102,7 +95,8 @@ public class TrayFSM {
     private double servoIgnoreUntil = 0.0;
 
     // Constructor: initialize final hardware fields and detection window
-    public TrayFSM(Servo trayServo, CRServo rubberBands, CRServo intakeRoller, NormalizedColorSensor colorSensor, Telemetry telemetry) {
+    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, CRServo rubberBands, CRServo intakeRoller, NormalizedColorSensor colorSensor, Telemetry telemetry) {
+        this.opMode = opMode;
         this.trayServo = trayServo;
         this.rubberBands = rubberBands;
         this.intakeRoller = intakeRoller;
@@ -302,9 +296,9 @@ public class TrayFSM {
         int i = Math.max(0, Math.min(2, scoreSlotIndex));
         double pos;
         switch (i) {
-            case 0: pos = TRAY_POS_1_SCORE; break;
-            case 1: pos = TRAY_POS_2_SCORE; break;
-            default: pos = TRAY_POS_3_SCORE; break;
+            case 0: pos = DarienOpModeFSM.TRAY_POS_1_SCORE; break;
+            case 1: pos = DarienOpModeFSM.TRAY_POS_2_SCORE; break;
+            default: pos = DarienOpModeFSM.TRAY_POS_3_SCORE; break;
         }
         trayServo.setPosition(pos);
     }
