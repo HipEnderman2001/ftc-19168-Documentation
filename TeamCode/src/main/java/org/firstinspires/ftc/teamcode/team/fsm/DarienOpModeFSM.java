@@ -89,11 +89,6 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     public void initControls() {
 
-        // INITIALIZE SENSORS
-
-        // Initialize 2 Deadwheel odometry
-        //configure2DeadWheel();
-
         //TELEMETRY
         // TODO: Put a flag to turn on/off ftc dashboard. We don't want that to run during matches.
         tp = new TelemetryPacket();
@@ -115,7 +110,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         ejectionMotor = hardwareMap.get(DcMotor.class, "ejectionMotor");
         ejectionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        //initAprilTag();
+        initAprilTag();
 
         // INSTANTIATE THE STATE MACHINES
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);

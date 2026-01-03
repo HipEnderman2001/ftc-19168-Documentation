@@ -64,7 +64,7 @@ public class TrayFSM {
     public static float PURPLE_HUE_MIN = 250f;
     public static float PURPLE_HUE_MAX = 330f;
     public static float SAT_THRESHOLD = 0.25f;
-    public static float VAL_THRESHOLD = 0.02f; // lower default to handle low-light readings
+    public static float VAL_THRESHOLD = 0.006f; // lower default to handle low-light readings
 
     // Low-light relative detection (dashboard-tunable)
     // When readings are extremely small (e.g. RGB 1/2/3), absolute HSV/RGB thresholds may fail.

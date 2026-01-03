@@ -39,14 +39,15 @@ public class ShootPatternFSM {
         AprilTagDetection detection = aprilTagDetections.get(0); // Only use first detection for motif
         int[] motif = null;
         // Motif order: 1=TRAY_POS_1_SCORE, 2=TRAY_POS_2_SCORE, 3=TRAY_POS_3_SCORE
+        //WORKING WHEN GREEN IN 2
         switch (detection.id) {
             case 21:
-                motif = new int[]{2, 3, 1}; break; // GPP
+                motif = new int[]{1, 2, 3}; break; // GPP
             case 22:
-                motif = new int[]{1, 2, 3}; break; // PGP
+                motif = new int[]{2, 1, 3}; break; // PGP
             case 23:
             default:
-                motif = new int[]{1, 3, 2}; break; // PPG
+                motif = new int[]{3, 2, 1}; break; // PPG
         }
 
         if (nbMotifIndex >= motif.length) {

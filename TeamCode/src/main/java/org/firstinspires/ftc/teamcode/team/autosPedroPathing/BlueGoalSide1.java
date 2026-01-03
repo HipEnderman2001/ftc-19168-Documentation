@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.team.fsm.DarienOpModeFSM;
 /**
  * Pedro Pathing auto using LinearOpMode via DarienOpModeFSM.
  */
-@Disabled
+
 @Autonomous(name = "BlueGoalSidePedro", group = "Pedro:Blues", preselectTeleOp = "TeleopFSM")
 @Configurable
 public class BlueGoalSide1 extends DarienOpModeFSM {
@@ -137,7 +137,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             Path3 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(43.234, 96.443), new Pose(43.5, 87.305))
+                            new BezierLine(new Pose(43.234, 96.443), new Pose(43.5, 84.305))
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(145), Math.toRadians(180))
                     .build();
@@ -145,7 +145,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             Path4 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(43.5, 87.305), new Pose(33.5, 87.305))
+                            new BezierLine(new Pose(43.5, 84.305), new Pose(33.5, 84.305))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -153,7 +153,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             Path5 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(33.5, 87.305), new Pose(29.5, 87.305))
+                            new BezierLine(new Pose(33.5, 84.305), new Pose(29.5, 84.305))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -161,7 +161,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
             Path6 = follower
                     .pathBuilder()
                     .addPath(
-                            new BezierLine(new Pose(29.25, 87.305), new Pose(17.792, 87.305))
+                            new BezierLine(new Pose(29.25, 84.305), new Pose(17.792, 84.305))
                     )
                     .setTangentHeadingInterpolation()
                     .build();
@@ -170,9 +170,9 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     .pathBuilder()
                     .addPath(
                             new BezierCurve(
-                                    new Pose(17.792, 87.305),
-                                    new Pose(44.564, 103.926),
-                                    new Pose(47.557, 119.383)
+                                    new Pose(17.792, 84.305),
+                                    new Pose(48.222, 97.613),
+                                    new Pose(59.235, 116.63499420625725)
                             )
                     )
                     .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(157))
@@ -261,7 +261,8 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
 
                 if (shootPatternFSM.isShootPatternDone() || pathTimer.getElapsedTimeSeconds() > 10.0) {
 
-                    //rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
 
                     // now continue with next path
                     follower.followPath(paths.Path3, true);
@@ -312,7 +313,8 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     follower.setMaxPower(0.5); // move slowly to prevent artifacts from falling out of tray
                     follower.followPath(paths.Path7, true);
                     setTrayPosition(TRAY_POS_1_SCORE);
-                    //rubberBands.setPower(0);
+                    rubberBands.setPower(0);
+                    intakeRoller.setPower(0);
                     setPathState(pathState + 1);
                 }
                 break;

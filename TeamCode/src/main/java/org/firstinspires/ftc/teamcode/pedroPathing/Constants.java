@@ -14,9 +14,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(9.344) // in kgs = 20.6 lbs
-            .forwardZeroPowerAcceleration(-36.425188492580105)
-            .lateralZeroPowerAcceleration(-58.8393478979987);
+            .mass(10.886) // in kgs = 24.0 lbs on 1/3/2026
+            .forwardZeroPowerAcceleration(-35.95140360972847)
+            .lateralZeroPowerAcceleration(-67.63076641896717);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -29,13 +29,13 @@ public class Constants {
     }
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-1.75)
-            .strafePodX(-7.5)
+            .forwardPodY(0.9) // Positive Y is strafe left.
+            .strafePodX(-5.6) // Positive X is forward.
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("odo")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(0.8)
@@ -47,6 +47,6 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(49.204062634565695)
-            .yVelocity(42.371860293891494);
+            .xVelocity(45.179)
+            .yVelocity(35.367);
 }
