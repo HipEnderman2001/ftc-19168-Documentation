@@ -88,18 +88,21 @@ public class TeleOpFSM extends DarienOpModeFSM {
             if (gamepad1.y) {
                 intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                 rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.a) {
                 intakeRoller.setPower(-OUTPUT_INTAKE_ROLLER_POWER);
                 rubberBands.setPower(-OUTPUT_RUBBER_BANDS_POWER);
+                topIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.x) {
                 intakeRoller.setPower(0);
                 rubberBands.setPower(0);
+                topIntake.setPower(0);
             }
 
             // Toggle auto-intake on right bumper press (edge triggered)
             if (gamepad1.right_bumper && !prevRightBumper) {
                 // toggle the TrayFSM instance (from DarienOpModeFSM)
-                if (trayFSM != null) trayFSM.toggleAutoIntake();
+                trayFSM.toggleAutoIntake();
             }
             prevRightBumper = gamepad1.right_bumper;
 
@@ -107,8 +110,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
             telemetry.addData("AutoIntakeRunning", trayFSM != null && trayFSM.isAutoIntakeRunning());
 
             // Update trayFSM state machine each loop so it can run when toggled on
-            if (trayFSM != null) {
-                trayFSM.update();
+            trayFSM.update();
+            if (!trayFSM.isAutoIntakeRunning()) {
+                    shotgunFSM.toPowerUp();
             }
 
 
@@ -161,6 +165,19 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 } // end Red Goal April Tag
 
                 //CONTROL: EJECTION MOTORS
+                if (!trayFSM.isAutoIntakeRunning()) {
+                    if (gamepad2.right_stick_y > 0.05) {
+                        // close shot
+                        shotgunFSM.toPowerUp();
+                    } else if (gamepad2.right_stick_y < -0.05) {
+                        // far shot
+                        shotgunFSM.toPowerUpFar();
+                    }
+                } else {
+                    shotgunFSM.toOff();
+                }
+
+                /*
                 if (gamepad2.right_trigger > 0.05 && gamepad2.right_stick_y >= -0.05) {
                     ejectionMotor.setPower(getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP));
                 } else if (gamepad2.right_trigger > 0.05 && gamepad2.right_stick_y < -0.05) {
@@ -170,6 +187,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 } else {
                     ejectionMotor.setPower(0);
                 }
+
+                 */
 
                 //CONTROL: ELEVATOR
                 if (gamepad2.left_bumper) {
@@ -204,22 +223,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     //servoIncremental(TrayServo, TRAY_POS_3_SCORE, currentTrayPosition, 1, 4);
                     //currentTrayPosition = TRAY_POS_3_SCORE;
                 }
-
-                //turret rotation
-                if (gamepad2.left_stick_x <=-0.05) {    //turn turret clockwise
-                    //updating the current turret position to be in range of the min and max
-                    currentTurretPosition = clampT(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
-                    //sets turret position
-                    turretServo.setPosition(currentTurretPosition);
-                }
-                else if (gamepad2.left_stick_x >= 0.05) {   //turn turret counterclockwise
-                    //updating the current turret position to be in range of the min and max
-                    currentTurretPosition = clampT(currentTurretPosition - TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
-                    //sets turret position
-                    turretServo.setPosition(currentTurretPosition);
-                }
-            /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
-                telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
 
                 /*
                 // CONTROL: ROTATING TRAY USING FSM
@@ -305,8 +308,24 @@ public class TeleOpFSM extends DarienOpModeFSM {
                  */
 
             } //macro controls
-            telemetry.update();
 
+            //turret rotation
+            if (gamepad2.left_stick_x <=-0.05) {    //turn turret clockwise
+                //updating the current turret position to be in range of the min and max
+                currentTurretPosition = clampT(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
+                //sets turret position
+                turretServo.setPosition(currentTurretPosition);
+            }
+            else if (gamepad2.left_stick_x >= 0.05) {   //turn turret counterclockwise
+                //updating the current turret position to be in range of the min and max
+                currentTurretPosition = clampT(currentTurretPosition - TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
+                //sets turret position
+                turretServo.setPosition(currentTurretPosition);
+            }
+            /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
+                telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
+
+            telemetry.update();
         } //while opModeIsActive
     } //runOpMode
 } //TeleOpFSM class

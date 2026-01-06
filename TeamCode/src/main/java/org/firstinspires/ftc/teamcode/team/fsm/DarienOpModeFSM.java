@@ -32,6 +32,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public ShootArtifactFSM shootArtifactFSM;
     public TrayFSM trayFSM;
     public ShootTripleFSM shootTripleFSM;
+    public ShotgunFSM shotgunFSM;
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
     public AprilTagProcessor aprilTag;
@@ -43,7 +44,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     // HARDWARE DEVICES
     public Servo TrayServo, Elevator, turretServo;
-    public CRServo rubberBands, intakeRoller;
+    public CRServo rubberBands, intakeRoller, topIntake;
     public DcMotor ejectionMotor;
 
     public NormalizedColorSensor intakeColorSensor;
@@ -99,6 +100,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         Elevator = hardwareMap.get(Servo.class, "Elevator");
         rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
+        topIntake = hardwareMap.get(CRServo.class, "topIntake");
         turretServo = hardwareMap.get(Servo.class, "turretServo");
         turretServo.setPosition(0.5);
         currentTurretPosition = 0.5;
@@ -116,8 +118,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
-        trayFSM = new TrayFSM(this, TrayServo, rubberBands, intakeRoller, intakeColorSensor, telemetry);
+        trayFSM = new TrayFSM(this, TrayServo, rubberBands, intakeRoller, topIntake, intakeColorSensor, telemetry);
         shootTripleFSM = new ShootTripleFSM(this);
+        shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position

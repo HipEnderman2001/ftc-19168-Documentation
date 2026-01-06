@@ -27,6 +27,7 @@ public class TrayFSM {
     private final Servo trayServo;
     private final CRServo rubberBands;      // CRServo for rubber band intake
     private final CRServo intakeRoller;     // CRServo for intake roller
+    private final CRServo topIntake;       // CRServo for top intake
     private final NormalizedColorSensor colorSensor;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
@@ -95,11 +96,12 @@ public class TrayFSM {
     private double servoIgnoreUntil = 0.0;
 
     // Constructor: initialize final hardware fields and detection window
-    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, CRServo rubberBands, CRServo intakeRoller, NormalizedColorSensor colorSensor, Telemetry telemetry) {
+    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, CRServo rubberBands, CRServo intakeRoller, CRServo topIntake, NormalizedColorSensor colorSensor, Telemetry telemetry) {
         this.opMode = opMode;
         this.trayServo = trayServo;
         this.rubberBands = rubberBands;
         this.intakeRoller = intakeRoller;
+        this.topIntake = topIntake;
         this.colorSensor = colorSensor;
         this.telemetry = telemetry;
 
@@ -158,6 +160,7 @@ public class TrayFSM {
                     // Start intake to try to capture a ball: run both rubber bands and the roller
                     rubberBands.setPower(INTAKE_RUBBER_POWER);
                     intakeRoller.setPower(INTAKE_ROLLER_POWER);
+                    topIntake.setPower(-intakeRollerPower);
                     // reset detection window for this intake slot
                     Arrays.fill(detectionWindow, SlotState.EMPTY);
                      windowIndex = 0;
@@ -216,6 +219,7 @@ public class TrayFSM {
                     // ball can settle into the slot.
                     rubberBands.setPower(0.0);
                     intakeRoller.setPower(0.0);
+                    topIntake.setPower(0.0);
                     slots[currentSlotIndex] = accepted;
                     telemetry.addData("Slot " + (currentSlotIndex + 1), slots[currentSlotIndex].toString());
                     // Determine next empty slot index. We will move there after BALL_SETTLE_TIME.
@@ -234,6 +238,7 @@ public class TrayFSM {
                      // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
                      rubberBands.setPower(0.0);
                      intakeRoller.setPower(0.0);
+                     topIntake.setPower(0.0);
                      slots[currentSlotIndex] = SlotState.EMPTY;
                      int next = findNextEmptySlot(currentSlotIndex + 1);
                      if (next < 0) {
@@ -267,6 +272,7 @@ public class TrayFSM {
                 // leave motors off
                 rubberBands.setPower(0.0);
                 intakeRoller.setPower(0.0);
+                topIntake.setPower(0.0);
                 break;
         }
 
@@ -411,6 +417,7 @@ public class TrayFSM {
     public void stop() {
         rubberBands.setPower(0);
         intakeRoller.setPower(0);
+        topIntake.setPower(0.0);
         state = State.IDLE;
     }
 
@@ -427,6 +434,7 @@ public class TrayFSM {
     public void stopAutoIntake() {
         rubberBands.setPower(0.0);
         intakeRoller.setPower(0.0);
+        topIntake.setPower(0.0);
         state = State.DONE;
     }
 
@@ -439,6 +447,7 @@ public class TrayFSM {
         // stop motors immediately
         rubberBands.setPower(0.0);
         intakeRoller.setPower(0.0);
+        topIntake.setPower(0.0);
         // clear detection buffer and reset window index
         Arrays.fill(detectionWindow, SlotState.EMPTY);
         windowIndex = 0;
