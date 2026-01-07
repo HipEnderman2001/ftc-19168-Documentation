@@ -263,6 +263,7 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
 
                     rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                     intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
+                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
 
                     // now continue with next path
                     follower.followPath(paths.Path3, true);
@@ -315,6 +316,8 @@ public class BlueGoalSide1 extends DarienOpModeFSM {
                     setTrayPosition(TRAY_POS_1_SCORE);
                     rubberBands.setPower(0);
                     intakeRoller.setPower(0);
+                    topIntake.setPower(0);
+
                     setPathState(pathState + 1);
                 }
                 break;
