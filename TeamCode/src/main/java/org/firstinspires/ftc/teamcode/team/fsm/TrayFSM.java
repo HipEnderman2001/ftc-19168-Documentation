@@ -210,6 +210,13 @@ public class TrayFSM {
                     if (detectionWindow[i] == SlotState.GREEN) countGreen++;
                 }
 
+                // Manual overrides for testing (gamepad2 X=purple, Y=green)
+                if (opMode.gamepad1.dpad_left) {
+                    countPurple += REQUIRED_DETECTIONS;
+                } if (opMode.gamepad1.dpad_right) {
+                countGreen += REQUIRED_DETECTIONS;
+                }
+
                 telemetry.addData("WindowCounts", "P=%d G=%d", countPurple, countGreen);
 
                 // Determine if either color meets the required detections
@@ -425,7 +432,7 @@ public class TrayFSM {
      * Returns true if the auto-intake state machine is currently running (positioning or intaking).
      */
     public boolean isAutoIntakeRunning() {
-        return state == State.POSITION_TO_SLOT || state == State.INTAKE_WAIT;
+        return state == State.POSITION_TO_SLOT || state == State.INTAKE_WAIT || state == State.CHECK_SLOT;
     }
 
     /**

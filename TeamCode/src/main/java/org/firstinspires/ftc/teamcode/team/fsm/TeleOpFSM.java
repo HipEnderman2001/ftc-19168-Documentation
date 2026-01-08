@@ -198,6 +198,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 }
 
                 // CONTROL: ROTATING TRAY
+                /*
                 if (gamepad2.dpad_left) {
                     setTrayPosition(TRAY_POS_1_INTAKE);
                     //servoIncremental(TrayServo, TRAY_POS_1_INTAKE, currentTrayPosition, 1, 4);
@@ -223,6 +224,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     //servoIncremental(TrayServo, TRAY_POS_3_SCORE, currentTrayPosition, 1, 4);
                     //currentTrayPosition = TRAY_POS_3_SCORE;
                 }
+
+                 */
 
                 /*
                 // CONTROL: ROTATING TRAY USING FSM
