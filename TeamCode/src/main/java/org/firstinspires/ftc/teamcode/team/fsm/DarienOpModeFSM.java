@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -85,6 +86,11 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double TURRET_ROTATION_INCREMENT = 0.001;
     public static double TURRET_ROTATION_MAX_LEFT = 0.63;
     public static double TURRET_ROTATION_MAX_RIGHT = 0.3;
+    public static double EJECTION_P=15;
+    public static double EJECTION_I=0.85;
+    public static double EJECTION_D=0;
+    public static double EJECTION_F=0;
+
 
     // DYNAMIC VARIABLES
     public double currentTrayPosition;
@@ -116,7 +122,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
         topIntake = hardwareMap.get(CRServo.class, "topIntake");
         turretServo = hardwareMap.get(Servo.class, "turretServo");
-        turretServo.setPosition(0.5);
+        turretServo.setPosition(0.5); // set to center position
+        //turretServo.scaleRange(0.3, 0.63); // limit the servo range to the turret rotation range
         currentTurretPosition = 0.5;
 
         // INITIALIZE SENSORS
@@ -125,6 +132,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         // INITIALIZE MOTORS
         ejectionMotor = hardwareMap.get(DcMotorEx.class, "ejectionMotor");
         ejectionMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        ejectionMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(EJECTION_P,EJECTION_I,EJECTION_D,EJECTION_F));
+
 
         initAprilTag();
 

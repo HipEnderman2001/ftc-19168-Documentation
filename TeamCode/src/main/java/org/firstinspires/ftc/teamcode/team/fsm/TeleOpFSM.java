@@ -11,6 +11,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.TelemetryManager;
+//import com.qualcomm.robotcore.hardware.DcMotorEx;
+//import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "TeleopFSM", group = "DriverControl")
@@ -51,6 +53,15 @@ public class TeleOpFSM extends DarienOpModeFSM {
     double correctedBearingDeg;
     boolean isCalculatingTurretTargetPosition = false;
 
+    // PIDF Tuning values for ejection motor
+    /*
+    public static double NEW_P = 0.1;
+    public static double NEW_I = 0.1;
+    public static double NEW_D = 0;
+    public static double NEW_F = 0;
+
+     */
+
     //private clamp test
     private static double clampT(double v, double min, double max) {
         if (Double.isNaN(v)) return min;               // defensive: treat NaN as min
@@ -83,6 +94,16 @@ public class TeleOpFSM extends DarienOpModeFSM {
         //Start
         follower.startTeleopDrive(true);
         follower.update();
+
+        //PIDFCoefficients pidfOrig = ejectionMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        // Change coefficients using methods included with DcMotorEx class.
+        //PIDFCoefficients pidfNew = new PIDFCoefficients(NEW_P, NEW_I, NEW_D, NEW_F);
+        //ejectionMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
+
+        // Re-read coefficients and verify change.
+        //PIDFCoefficients pidfModified = ejectionMotor.getPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
 
         while (this.opModeIsActive() && !isStopRequested()) {
 
@@ -349,6 +370,14 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 shotgunFSM.toOff();
             }
             telemetry.addData("Actual ShotGun RPM", ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
+
+            /*
+            telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
+                    pidfOrig.p, pidfOrig.i, pidfOrig.d, pidfOrig.f);
+            telemetry.addData("P,I,D,F (modified)", "%.04f, %.04f, %.04f, %.04f",
+                    pidfModified.p, pidfModified.i, pidfModified.d, pidfModified.f);
+
+             */
 
             telemetry.update();
         } //while opModeIsActive
