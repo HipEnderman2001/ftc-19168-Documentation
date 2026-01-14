@@ -53,6 +53,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
     double correctedBearingDeg;
     boolean isCalculatingTurretTargetPosition = false;
 
+    int targetGoalTagId;
+
     // PIDF Tuning values for ejection motor
     /*
     public static double NEW_P = 0.1;
@@ -92,6 +94,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
         waitForStart();
         if (isStopRequested()) return;
         //Start
+        turretFSM.setTurretServoPosition(TURRET_POSITION_CENTER); // set to center position
         follower.startTeleopDrive(true);
         follower.update();
 
@@ -156,16 +159,23 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // -----------------
 
                 //CONTROL: POINT TURRET TO GOAL
-                // ALIGN TO BLUE GOAL
-                // TODO: Add controls for aligning to blue goal
-
-                // ALIGN TO RED GOAL
-                if (gamepad2.b && !isReadingAprilTag) {
-                    //point robot at red goal if gamepad1 right trigger is pressed
-                    tagFSM.start(getRuntime());
-                    isReadingAprilTag = true;
-
-                } else if (isReadingAprilTag) {
+                if (!isReadingAprilTag) {
+                    if (gamepad2.b) {
+                        // ALIGN TO RED GOAL
+                        tagFSM.start(getRuntime());
+                        isReadingAprilTag = true;
+                        targetGoalTagId = GOAL_ID_RED;
+                        telemetry.addLine("ALIGN TURRET TO RED!");
+                    }
+                    if (gamepad2.x) {
+                        // ALIGN TO BLUE GOAL
+                        tagFSM.start(getRuntime());
+                        isReadingAprilTag = true;
+                        targetGoalTagId = GOAL_ID_BLUE;
+                        telemetry.addLine("ALIGN TURRET TO BLUE!");
+                    }
+                }
+                if (isReadingAprilTag) {
                     tagFSM.update(getRuntime(), true, telemetry);
                     telemetry.addLine("Reading...");
 
@@ -173,14 +183,14 @@ public class TeleOpFSM extends DarienOpModeFSM {
                         telemetry.addLine("DONE READING!");
                         isReadingAprilTag = false;
                         aprilTagDetections = tagFSM.getDetections();
-                        //aprilTagDetections.removeIf(tag -> tag.id != 24);
-                        aprilTagDetections.removeIf(tag -> tag.id == 20 || tag.id == 21 || tag.id == 22 || tag.id == 23);
+                        aprilTagDetections.removeIf(tag -> tag.id != targetGoalTagId);
+                        //aprilTagDetections.removeIf(tag -> tag.id == 20 || tag.id == 21 || tag.id == 22 || tag.id == 23);
                         if (!aprilTagDetections.isEmpty()) {
                             telemetry.addLine("FOUND APRILTAG!");
                             tagFSM.telemetryAprilTag(telemetry);
                             // Rotate the turret only if an apriltag is detected and it's the red goal apriltag id
                             detection = aprilTagDetections.get(0);
-                            if (detection.id == 24) {
+                            if (detection.id == targetGoalTagId) {
                                 telemetry.addLine("ALIGNING TO GOAL...");
                                 yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
@@ -192,12 +202,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
                                 if (!isCalculatingTurretTargetPosition) {
                                     isCalculatingTurretTargetPosition = true;
-                                    targetServoPos = currentTurretPosition + RATIO_BETWEEN_TURRET_GEARS * rawBearingDeg / FIVE_ROTATION_SERVO_SPAN_DEG;
-                                    //targetServoPos = Range.clip(targetServoPos, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
+                                    targetServoPos = turretFSM.getCurrentTurretServoPosition() + RATIO_BETWEEN_TURRET_GEARS * rawBearingDeg / FIVE_ROTATION_SERVO_SPAN_DEG;
                                 }
-                                //turretServo.setPosition(targetServoPos);
-                                //currentTurretPosition = targetServoPos;
-                            } // end detection.id == 24
+                            } // end detection.id == 24 or 25
                         } // end detection is empty
                     } // end tagFSM is done
                     isCalculatingTurretTargetPosition = false;
@@ -207,7 +214,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 telemetry.addData("yaw", yaw);
                 telemetry.addData("Raw Bearing Deg (alpha)", rawBearingDeg);
                 telemetry.addData("currentHeadingDeg (C0)", currentHeadingDeg);
-                telemetry.addData("currentTurretPosition", currentTurretPosition);
+                telemetry.addData("currentTurretPosition", turretFSM.getCurrentTurretServoPosition());
                 telemetry.addData("targetServoPos", targetServoPos);
 
                 //CONTROL: ELEVATOR
@@ -295,23 +302,14 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
             //turret rotation
             if (gamepad2.left_stick_x <=-0.05) {    //turn turret clockwise
-                //updating the current turret position to be in range of the min and max
-                currentTurretPosition = clampT(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
-                //sets turret position
-                turretServo.setPosition(currentTurretPosition);
+                turretFSM.setTurretServoPosition(turretFSM.getCurrentTurretServoPosition() + TURRET_ROTATION_INCREMENT);
             }
             else if (gamepad2.left_stick_x >= 0.05) {   //turn turret counterclockwise
-                //updating the current turret position to be in range of the min and max
-                currentTurretPosition = clampT(currentTurretPosition - TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
-                //sets turret position
-                turretServo.setPosition(currentTurretPosition);
+                turretFSM.setTurretServoPosition(turretFSM.getCurrentTurretServoPosition() - TURRET_ROTATION_INCREMENT);
             }
             else if (gamepad2.leftStickButtonWasPressed() && !Double.isNaN(targetServoPos)) {
-                currentTurretPosition = targetServoPos;
-                turretServo.setPosition(targetServoPos);
+                turretFSM.setTurretServoPosition(targetServoPos);
             }
-            /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
-                telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
 
             //CONTROL: EJECTION MOTORS
             if (!trayFSM.isAutoIntakeRunning()) {

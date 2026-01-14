@@ -13,11 +13,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Base OpMode for Pedro pathing and state machine logic.
@@ -83,18 +86,20 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.3;
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
-    public static double TURRET_ROTATION_INCREMENT = 0.001;
+    public static double TURRET_ROTATION_INCREMENT = 0.01;
     public static double TURRET_ROTATION_MAX_LEFT = 0.63;
-    public static double TURRET_ROTATION_MAX_RIGHT = 0.3;
+    public static double TURRET_ROTATION_MAX_RIGHT = 0.35;
+    public static double TURRET_POSITION_CENTER = 0.5;
     public static double EJECTION_P=15;
     public static double EJECTION_I=0.85;
     public static double EJECTION_D=0;
     public static double EJECTION_F=0;
+    public final int GOAL_ID_BLUE = 20;
+    public final int GOAL_ID_RED = 24;
 
 
     // DYNAMIC VARIABLES
     public double currentTrayPosition;
-    public double currentTurretPosition;
     public enum ShotgunPowerLevel {
         OFF,
         LOW,
@@ -122,9 +127,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
         topIntake = hardwareMap.get(CRServo.class, "topIntake");
         turretServo = hardwareMap.get(Servo.class, "turretServo");
-        turretServo.setPosition(0.5); // set to center position
-        //turretServo.scaleRange(0.3, 0.63); // limit the servo range to the turret rotation range
-        currentTurretPosition = 0.5;
+        turretServo.scaleRange(TURRET_ROTATION_MAX_RIGHT, TURRET_ROTATION_MAX_LEFT); // limit and scale the servo range to the turret rotation range
 
         // INITIALIZE SENSORS
         intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
@@ -137,6 +140,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
         initAprilTag();
 
+        setManualExposure(6, 250);  // Use low exposure time to reduce motion blur
+
         // INSTANTIATE THE STATE MACHINES
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
@@ -144,7 +149,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         trayFSM = new TrayFSM(this, TrayServo, rubberBands, intakeRoller, topIntake, intakeColorSensor, telemetry);
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
-        turretFSM = new TurretFSM(this);
+        turretFSM = new TurretFSM(this, turretServo);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
         //currentTrayPosition = TRAY_POS_1_SCORE; // set a default tray position
@@ -269,6 +274,44 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
      */
     public static double clamp(double val, double min, double max) {
         return Math.max(min, Math.min(max, val));
+    }
+
+    /*
+ Manually set the camera gain and exposure.
+ This can only be called AFTER calling initAprilTag(), and only works for Webcams;
+*/
+    private void setManualExposure(int exposureMS, int gain) {
+        // Wait for the camera to be open, then use the controls
+
+        if (visionPortal == null) {
+            return;
+        }
+
+        // Make sure camera is streaming before we try to set the exposure controls
+        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
+            telemetry.addData("Camera", "Waiting");
+            telemetry.update();
+            while (!isStopRequested() && (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING)) {
+                sleep(20);
+            }
+            telemetry.addData("Camera", "Ready");
+            telemetry.update();
+        }
+
+        // Set camera controls unless we are stopping.
+        if (!isStopRequested())
+        {
+            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
+                exposureControl.setMode(ExposureControl.Mode.Manual);
+                sleep(50);
+            }
+            exposureControl.setExposure((long)exposureMS, TimeUnit.MILLISECONDS);
+            sleep(20);
+            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+            gainControl.setGain(gain);
+            sleep(20);
+        }
     }
 
     //goal: automate intake as much as possible, save tray positions, checking if there are balls in either of 3 slots, not just yes not but color aswell, automate intake, sensor checks if ball is in, then rotate, intake etc...
