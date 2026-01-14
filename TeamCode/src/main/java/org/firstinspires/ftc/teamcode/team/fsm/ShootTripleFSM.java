@@ -27,8 +27,7 @@ public class ShootTripleFSM {
     private boolean nbShootingActive = false;
     private double shootPower = 0;
     private boolean shotStarted = false;
-
-    public static double TRAY_DELAY = 1.5;
+    public static double TRAY_DELAY = 0.8;
     public static double SPINUP_DELAY = 1;
 
     public void startShootTriple(double currentTime, double shootingPower) {

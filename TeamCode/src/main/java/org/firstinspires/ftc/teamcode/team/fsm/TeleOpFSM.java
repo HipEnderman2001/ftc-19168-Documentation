@@ -37,6 +37,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
     // Track previous bumper state for edge detection
     private boolean prevRightBumper = false;
+    private boolean prevBackButton = false;
     private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
 
     // AUTOMATIC TURRET CONTROLS BASED ON CAMERA APRILTAG DETECTION
@@ -135,6 +136,13 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 trayFSM.toggleAutoIntake();
             }
             prevRightBumper = gamepad1.right_bumper;
+
+            // Toggle auto-intake on back button press
+            if (gamepad2.back && !prevBackButton) {
+                // toggle the TrayFSM instance (from DarienOpModeFSM)
+                trayFSM.toggleAutoIntake();
+            }
+            prevBackButton = gamepad2.back;
 
             // Show current auto-intake status on telemetry
             telemetry.addData("AutoIntakeRunning", trayFSM != null && trayFSM.isAutoIntakeRunning());

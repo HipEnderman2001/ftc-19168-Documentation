@@ -75,7 +75,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static final double ELEVATOR_POS_DOWN = 0.45;
     public static double SHOT_GUN_POWER_UP = 0.60;
     public static double SHOT_GUN_POWER_UP_FAR = 0.64;//66
-    public static double SHOT_GUN_POWER_UP_RPM = 2800; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_RPM = 2700; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_UP_FAR_RPM = 3350; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
     public static final double TIMEOUT_APRILTAG_DETECTION = 3;
@@ -85,9 +85,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double OUTPUT_INTAKE_ROLLER_POWER = 0.2;
     public static double TURRET_ROTATION_INCREMENT = 0.001;
     public static double TURRET_ROTATION_MAX_LEFT = 0.63;
-    public static double TURRET_ROTATION_MAX_RIGHT = 0.3;
+    public static double TURRET_ROTATION_MAX_RIGHT = 0.35;
     public static double EJECTION_P=15;
-    public static double EJECTION_I=0.85;
+    public static double EJECTION_I=1;
     public static double EJECTION_D=0;
     public static double EJECTION_F=0;
 
