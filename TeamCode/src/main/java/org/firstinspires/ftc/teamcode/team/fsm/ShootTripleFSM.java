@@ -35,7 +35,7 @@ public class ShootTripleFSM {
         nbShootingActive = true;
         shootPower = shootingPower;
         shootArtifactFSM.setEjectionMotorsControlledByPattern(true);
-        shootArtifactFSM.shotGun(shootPower);
+        shootArtifactFSM.shotGunTeleop(shootPower);
         nbLastActionTime = currentTime;
         nbStep = Stage.SHOTGUN_SPINUP;
     }

@@ -95,7 +95,16 @@ public class ShootArtifactFSM {
         if (power == opMode.SHOT_GUN_POWER_UP) {
             shotGunRPM(opMode.SHOT_GUN_POWER_UP_RPM);
         } else if (power == opMode.SHOT_GUN_POWER_UP_FAR) {
-            shotGunRPM(opMode.SHOT_GUN_POWER_UP_FAR_RPM);
+            shotGunRPM(opMode.SHOT_GUN_POWER_UP_FAR_RPM_AUTO);
+        }
+    }
+
+    public void shotGunTeleop(double power) {
+        //opMode.ejectionMotor.setPower(opMode.getVoltageAdjustedMotorPower(power));
+        if (power == opMode.SHOT_GUN_POWER_UP) {
+            shotGunRPM(opMode.SHOT_GUN_POWER_UP_RPM);
+        } else if (power == opMode.SHOT_GUN_POWER_UP_FAR) {
+            shotGunRPM(opMode.SHOT_GUN_POWER_UP_FAR_RPM_TELEOP);
         }
     }
 

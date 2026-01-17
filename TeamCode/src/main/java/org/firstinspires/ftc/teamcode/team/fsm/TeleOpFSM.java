@@ -27,7 +27,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // TUNING CONSTANTS
     public static double INTAKE_TIME = 1;
     public static double SHOT_TIMEOUT = 2.0; // seconds
-    public static double SHOT_GUN_POWER_UP_FAR_RPM = 3250; // tuned to 6000 rpm motor
 
     // VARIABLES
     private double shotStartTime;
@@ -338,8 +337,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
                         telemetry.addData("Requested ShotGun RPM", 0);
                         break;
                     case HIGH:
-                        shotgunFSM.toPowerUpFar();
-                        telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM);
+                        shotgunFSM.toPowerUpFar(SHOT_GUN_POWER_UP_FAR_RPM_TELEOP);
+                        telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_FAR_RPM_TELEOP);
                         break;
                     default:
                     case LOW:
@@ -379,6 +378,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 shotgunFSM.toOff();
             }
             telemetry.addData("Actual ShotGun RPM", ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
+            telemetry.addData("ejectionMotor duty", ejectionMotor.getPower());
 
             /*
             telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",

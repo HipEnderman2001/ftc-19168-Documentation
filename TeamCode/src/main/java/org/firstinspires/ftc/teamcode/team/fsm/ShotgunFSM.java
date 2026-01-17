@@ -46,10 +46,10 @@ public class ShotgunFSM {
         shotgunMotor.setVelocity(opmode.getTicksPerSecond(opmode.SHOT_GUN_POWER_UP_RPM));
     }
 
-    public void toPowerUpFar() {
+    public void toPowerUpFar(double power) {
         current = State.POWER_UP_FAR;
        // shotgunMotor.setPower(opmode.getVoltageAdjustedMotorPower(SHOT_GUN_POWER_UP_FAR));
-        shotgunMotor.setVelocity(opmode.getTicksPerSecond(opmode.SHOT_GUN_POWER_UP_FAR_RPM));
+        shotgunMotor.setVelocity(opmode.getTicksPerSecond(power));
     }
 
 }
