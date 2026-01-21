@@ -50,10 +50,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
     double rawBearingDeg; // Stores detection.ftcPose.bearing;
 
     // cameraOffsetX < 0 if camera is mounted on the LEFT
-    public static double cameraOffsetX = 0.105; // in centimeter, positive is right, negative is left
+   // public static double cameraOffsetX = 0.105; // in centimeter, positive is right, negative is left
     double correctedBearingRad;
     double correctedBearingDeg;
     boolean isCalculatingTurretTargetPosition = false;
+
+    int targetGoalTagId;
 
     // PIDF Tuning values for ejection motor
     /*
@@ -175,15 +177,18 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // -----------------
 
                 //CONTROL: POINT TURRET TO GOAL
-                // ALIGN TO BLUE GOAL
-                // TODO: Add controls for aligning to blue goal
-
-                // ALIGN TO RED GOAL
                 if (gamepad2.b && !isReadingAprilTag) {
-                    //point robot at red goal if gamepad1 right trigger is pressed
+                    // ALIGN TO RED GOAL
                     tagFSM.start(getRuntime());
                     isReadingAprilTag = true;
-
+                    targetGoalTagId = APRILTAG_ID_GOAL_RED;
+                    telemetry.addLine("ALIGN TURRET TO RED!");
+                } else if (gamepad2.x && !isReadingAprilTag) {
+                    // ALIGN TO BLUE GOAL
+                    tagFSM.start(getRuntime());
+                    isReadingAprilTag = true;
+                    targetGoalTagId = APRILTAG_ID_GOAL_BLUE;
+                    telemetry.addLine("ALIGN TURRET TO BLUE!");
                 } else if (isReadingAprilTag) {
                     tagFSM.update(getRuntime(), true, telemetry);
                     telemetry.addLine("Reading...");
@@ -199,7 +204,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                             tagFSM.telemetryAprilTag(telemetry);
                             // Rotate the turret only if an apriltag is detected and it's the red goal apriltag id
                             detection = aprilTagDetections.get(0);
-                            if (detection.id == 24) {
+                            if (detection.id == targetGoalTagId) {
                                 telemetry.addLine("ALIGNING TO GOAL...");
                                 yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
@@ -214,9 +219,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                                     targetServoPos = currentTurretPosition + RATIO_BETWEEN_TURRET_GEARS * rawBearingDeg / FIVE_ROTATION_SERVO_SPAN_DEG;
                                     //targetServoPos = Range.clip(targetServoPos, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
                                 }
-                                //turretServo.setPosition(targetServoPos);
-                                //currentTurretPosition = targetServoPos;
-                            } // end detection.id == 24
+                            } // end detection.id == 20 or 24
                         } // end detection is empty
                     } // end tagFSM is done
                     isCalculatingTurretTargetPosition = false;
