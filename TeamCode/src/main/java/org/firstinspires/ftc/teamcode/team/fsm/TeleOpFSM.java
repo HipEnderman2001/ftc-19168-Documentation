@@ -36,7 +36,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
     private boolean tripleShotStarted = false;
 
     // Track previous bumper state for edge detection
-    private boolean prevRightBumper = false;
+    private boolean prevRightBumper1 = false;
     private boolean prevBackButton = false;
     private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
 
@@ -115,27 +115,24 @@ public class TeleOpFSM extends DarienOpModeFSM {
             // GAMEPAD1 CONTROLS
             // -----------------
 
-            //RubberBands + IntakeRoller CONTROLS:
+            //RubberBands + topIntake CONTROLS:
             if (gamepad1.y) {
-                intakeRoller.setPower(INTAKE_INTAKE_ROLLER_POWER);
                 rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
                 topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.a) {
-                intakeRoller.setPower(-OUTPUT_INTAKE_ROLLER_POWER);
-                rubberBands.setPower(-OUTPUT_RUBBER_BANDS_POWER);
+                rubberBands.setPower(-INTAKE_RUBBER_BANDS_POWER);
                 topIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
             } else if (gamepad1.x) {
-                intakeRoller.setPower(0);
                 rubberBands.setPower(0);
                 topIntake.setPower(0);
             }
 
             // Toggle auto-intake on right bumper press (edge triggered)
-            if (gamepad1.right_bumper && !prevRightBumper) {
+            if (gamepad1.right_bumper && !prevRightBumper1) {
                 // toggle the TrayFSM instance (from DarienOpModeFSM)
                 trayFSM.toggleAutoIntake();
             }
-            prevRightBumper = gamepad1.right_bumper;
+            prevRightBumper1 = gamepad1.right_bumper;
 
             // Toggle auto-intake on back button press
             if (gamepad2.back && !prevBackButton) {
@@ -377,8 +374,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
             } else {
                 shotgunFSM.toOff();
             }
-            telemetry.addData("Actual ShotGun RPM", ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
-            telemetry.addData("ejectionMotor duty", ejectionMotor.getPower());
+            telemetry.addData("Actual ShotGun RPM", ejectionMotor.getVelocity() * 60 / TICKS_PER_ROTATION); // convert from ticks per second to RPM
+            telemetry.addData("ejectionMotor power", ejectionMotor.getPower());
+            telemetry.addData("Actual ShotGun TPS", ejectionMotor.getVelocity()); // convert from ticks per second to RPM
 
             /*
             telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",

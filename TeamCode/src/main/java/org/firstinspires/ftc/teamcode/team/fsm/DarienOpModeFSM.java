@@ -48,8 +48,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     // HARDWARE DEVICES
     public Servo TrayServo, Elevator, turretServo;
-    public CRServo rubberBands, intakeRoller, topIntake;
-    public DcMotorEx ejectionMotor;
+    public CRServo topIntake;
+    public DcMotorEx ejectionMotor, rubberBands;
 
     public NormalizedColorSensor intakeColorSensor;
 
@@ -59,7 +59,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static final double constMult = (wheelDiameter * (Math.PI));
     public static final double inchesToEncoder = encoderResolution / constMult;
     public static final double PI = 3.1416;
-    public static final double TICKS_PER_ROTATION = 28; // for goBILDA 6000 rpm motor 5203
+    public static final double TICKS_PER_ROTATION = 28*4; // for goBILDA 6000 rpm motor 5203. Each rotation has 28 ticks, and with 4x encoder mode, it's 28*4.
     public static final int FIVE_ROTATION_SERVO_SPAN_DEG = 1800; // Degrees of rotation (5-rotation goBILDA servo)
     public static final int RATIO_BETWEEN_TURRET_GEARS = 6;
 
@@ -75,9 +75,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static final double ELEVATOR_POS_DOWN = 0.45;
     public static double SHOT_GUN_POWER_UP = 0.60;
     public static double SHOT_GUN_POWER_UP_FAR = 0.64;//66
-    public static double SHOT_GUN_POWER_UP_RPM = 2700; // tuned to 6000 rpm motor
-    public static double SHOT_GUN_POWER_UP_FAR_RPM_AUTO = 3100; // tuned to 6000 rpm motor
-    public static double SHOT_GUN_POWER_UP_FAR_RPM_TELEOP = 3400; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_RPM = 500; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_FAR_RPM_AUTO = 1000; // tuned to 6000 rpm motor
+    public static double SHOT_GUN_POWER_UP_FAR_RPM_TELEOP = 1000; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
     public static final double TIMEOUT_APRILTAG_DETECTION = 3;
     public static double INTAKE_RUBBER_BANDS_POWER = 1;
@@ -89,9 +89,9 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double TURRET_ROTATION_MAX_RIGHT = 0.35;
     public static double TURRET_POSITION_CENTER = 0.5;
     public static double EJECTION_P=15;
-    public static double EJECTION_I=1.2;
+    public static double EJECTION_I=3;
     public static double EJECTION_D=0;
-    public static double EJECTION_F=10;
+    public static double EJECTION_F=12.5;
 
     public final int APRILTAG_ID_GOAL_BLUE = 20;
     public final int APRILTAG_ID_GOAL_RED = 24;
@@ -123,8 +123,6 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         // INITIALIZE SERVOS
         TrayServo = hardwareMap.get(Servo.class, "Tray");
         Elevator = hardwareMap.get(Servo.class, "Elevator");
-        rubberBands = hardwareMap.get(CRServo.class, "rubberBands");
-        intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
         topIntake = hardwareMap.get(CRServo.class, "topIntake");
         turretServo = hardwareMap.get(Servo.class, "turretServo");
         turretServo.setPosition(TURRET_POSITION_CENTER); // set to center position
@@ -135,6 +133,10 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         intakeColorSensor = hardwareMap.get(NormalizedColorSensor.class, "intakeColorSensor");
 
         // INITIALIZE MOTORS
+        rubberBands = hardwareMap.get(DcMotorEx.class, "rubberBands");
+        rubberBands.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        rubberBands.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
         ejectionMotor = hardwareMap.get(DcMotorEx.class, "ejectionMotor");
         ejectionMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         ejectionMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(EJECTION_P,EJECTION_I,EJECTION_D,EJECTION_F));
@@ -146,7 +148,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
-        trayFSM = new TrayFSM(this, TrayServo, rubberBands, intakeRoller, topIntake, intakeColorSensor, telemetry);
+        trayFSM = new TrayFSM(this, TrayServo, rubberBands, topIntake, intakeColorSensor, telemetry);
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
         turretFSM = new TurretFSM(this);

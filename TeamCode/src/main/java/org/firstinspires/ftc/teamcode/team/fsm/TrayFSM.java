@@ -4,6 +4,7 @@ import android.graphics.Color;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -25,19 +26,15 @@ public class TrayFSM {
     private final DarienOpModeFSM opMode;
 
     private final Servo trayServo;
-    private final CRServo rubberBands;      // CRServo for rubber band intake
-    private final CRServo intakeRoller;     // CRServo for intake roller
+    private final DcMotorEx rubberBands;      // Motor for rubber band intake
     private final CRServo topIntake;       // CRServo for top intake
     private final NormalizedColorSensor colorSensor;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
 
-    // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 1..3)
-    private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_1_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE, DarienOpModeFSM.TRAY_POS_3_INTAKE};
+    // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 3..1)
+    private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_3_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE, DarienOpModeFSM.TRAY_POS_1_INTAKE};
 
-    // Intake motor powers
-    private double intakeRubberPower = 1.0;
-    private double intakeRollerPower = 1.0;
 
     // Internal state
     private final SlotState[] slots = new SlotState[3];
@@ -96,11 +93,10 @@ public class TrayFSM {
     private double servoIgnoreUntil = 0.0;
 
     // Constructor: initialize final hardware fields and detection window
-    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, CRServo rubberBands, CRServo intakeRoller, CRServo topIntake, NormalizedColorSensor colorSensor, Telemetry telemetry) {
+    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, DcMotorEx rubberBands, CRServo topIntake, NormalizedColorSensor colorSensor, Telemetry telemetry) {
         this.opMode = opMode;
         this.trayServo = trayServo;
         this.rubberBands = rubberBands;
-        this.intakeRoller = intakeRoller;
         this.topIntake = topIntake;
         this.colorSensor = colorSensor;
         this.telemetry = telemetry;
@@ -111,8 +107,8 @@ public class TrayFSM {
     }
 
     // Dashboard-editable intake powers
-    public static double INTAKE_RUBBER_POWER = 1.0;
-    public static double INTAKE_ROLLER_POWER = 1.0;
+    public static double INTAKE_RUBBER_BANDS_POWER = DarienOpModeFSM.INTAKE_RUBBER_BANDS_POWER;
+    public static double INTAKE_INTAKE_ROLLER_POWER = DarienOpModeFSM.INTAKE_INTAKE_ROLLER_POWER;
 
     // Start the automatic intake process. This will clear previous slot data and begin at first empty intake slot.
     public void startAutoIntake() {
@@ -158,9 +154,8 @@ public class TrayFSM {
                 // only proceed to INTAKE_WAIT after both settle time and servo movement are finished
                 if (timer.seconds() - stateStartTime >= SETTLE_TIME && timer.seconds() >= servoIgnoreUntil) {
                     // Start intake to try to capture a ball: run both rubber bands and the roller
-                    rubberBands.setPower(INTAKE_RUBBER_POWER);
-                    intakeRoller.setPower(INTAKE_ROLLER_POWER);
-                    topIntake.setPower(-intakeRollerPower);
+                    rubberBands.setPower(INTAKE_RUBBER_BANDS_POWER);
+                    topIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
                     // reset detection window for this intake slot
                     Arrays.fill(detectionWindow, SlotState.EMPTY);
                      windowIndex = 0;
@@ -225,7 +220,6 @@ public class TrayFSM {
                     // Ball detected reliably — stop intake and record it, but wait before rotating so the
                     // ball can settle into the slot.
                     rubberBands.setPower(0.0);
-                    intakeRoller.setPower(0.0);
                     topIntake.setPower(0.0);
                     slots[currentSlotIndex] = accepted;
                     telemetry.addData("Slot " + (currentSlotIndex + 1), slots[currentSlotIndex].toString());
@@ -244,7 +238,6 @@ public class TrayFSM {
                      // Timeout behavior only used when waitForArtifact is false.
                      // Timeout, assume no ball arrived. Stop intake and mark EMPTY, go to next slot
                      rubberBands.setPower(0.0);
-                     intakeRoller.setPower(0.0);
                      topIntake.setPower(0.0);
                      slots[currentSlotIndex] = SlotState.EMPTY;
                      int next = findNextEmptySlot(currentSlotIndex + 1);
@@ -278,7 +271,6 @@ public class TrayFSM {
                 telemetry.addData("TrayFSM", "DONE");
                 // leave motors off
                 rubberBands.setPower(0.0);
-                intakeRoller.setPower(0.0);
                 topIntake.setPower(0.0);
                 break;
         }
@@ -309,9 +301,9 @@ public class TrayFSM {
         int i = Math.max(0, Math.min(2, scoreSlotIndex));
         double pos;
         switch (i) {
-            case 0: pos = DarienOpModeFSM.TRAY_POS_1_SCORE; break;
+            case 0: pos = DarienOpModeFSM.TRAY_POS_3_SCORE; break;
             case 1: pos = DarienOpModeFSM.TRAY_POS_2_SCORE; break;
-            default: pos = DarienOpModeFSM.TRAY_POS_3_SCORE; break;
+            default: pos = DarienOpModeFSM.TRAY_POS_1_SCORE; break;
         }
         trayServo.setPosition(pos);
     }
@@ -423,7 +415,6 @@ public class TrayFSM {
 
     public void stop() {
         rubberBands.setPower(0);
-        intakeRoller.setPower(0);
         topIntake.setPower(0.0);
         state = State.IDLE;
     }
@@ -440,7 +431,6 @@ public class TrayFSM {
      */
     public void stopAutoIntake() {
         rubberBands.setPower(0.0);
-        intakeRoller.setPower(0.0);
         topIntake.setPower(0.0);
         state = State.DONE;
     }
@@ -453,7 +443,6 @@ public class TrayFSM {
     public void forceStopAutoIntake() {
         // stop motors immediately
         rubberBands.setPower(0.0);
-        intakeRoller.setPower(0.0);
         topIntake.setPower(0.0);
         // clear detection buffer and reset window index
         Arrays.fill(detectionWindow, SlotState.EMPTY);

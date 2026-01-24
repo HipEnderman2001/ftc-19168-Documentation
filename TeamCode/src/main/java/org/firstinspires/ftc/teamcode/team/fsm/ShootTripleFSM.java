@@ -10,6 +10,7 @@ public class ShootTripleFSM {
         ROTATE_TRAY,
         WAIT_FOR_ROTATE,
         SHOOT,
+        DONE
     }
 
     private final DarienOpModeFSM opMode;
@@ -29,6 +30,15 @@ public class ShootTripleFSM {
     private boolean shotStarted = false;
     public static double TRAY_DELAY = 0.8;
     public static double SPINUP_DELAY = 1;
+    //private ShootTripleFSM.Stage state = ShootTripleFSM.Stage.IDLE;
+    /**
+     * Returns true if the auto-intake state machine is currently running (positioning or intaking).
+     */
+    /*
+    public boolean isRunning() {
+        return state == ShootTripleFSM.Stage.SHOTGUN_SPINUP || state == ShootTripleFSM.Stage.ROTATE_TRAY || state == ShootTripleFSM.Stage.WAIT_FOR_ROTATE || state == ShootTripleFSM.Stage.SHOOT;
+    }
+     */
 
     public void startShootTriple(double currentTime, double shootingPower) {
         nbMotifIndex = 0;
@@ -55,6 +65,9 @@ public class ShootTripleFSM {
         }
 
         switch (nbStep) {
+            case IDLE:
+                // nothing
+                break;
             case SHOTGUN_SPINUP:
                 if (currentTime - nbLastActionTime >= SPINUP_DELAY) {
                     nbLastActionTime = currentTime;
@@ -91,6 +104,10 @@ public class ShootTripleFSM {
                     nbStep = Stage.ROTATE_TRAY;
                 }
                 break;
+            case DONE:
+                nbShootingActive = false;
+                shootArtifactFSM.setEjectionMotorsControlledByPattern(false);
+                break;
         }
         opMode.telemetry.addData("Actual ShotGun RPM", opMode.ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
     }
@@ -98,5 +115,14 @@ public class ShootTripleFSM {
     public boolean isDone() {
         return !nbShootingActive;
     }
+/*
+    public void toggle() {
+        if (()) {
+            //stop();
+        } else {
+            startShootTriple();
+        }
+    }
+ */
 
 }
