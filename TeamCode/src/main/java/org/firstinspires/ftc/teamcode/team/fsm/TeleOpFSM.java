@@ -225,7 +225,10 @@ public class TeleOpFSM extends DarienOpModeFSM {
                                 if (!isCalculatingTurretTargetPosition) {
                                     isCalculatingTurretTargetPosition = true;
                                     targetServoPos = TURRET_POSITION_CENTER + turretOffset + RATIO_BETWEEN_TURRET_GEARS * rawBearingDeg / FIVE_ROTATION_SERVO_SPAN_DEG;
-                                    //targetServoPos = Range.clip(targetServoPos, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
+                                    if (!Double.isNaN(targetServoPos)) {
+                                        currentTurretPosition = targetServoPos;
+                                        turretServo.setPosition(targetServoPos);
+                                    }
                                 }
                             } // end detection.id == 20 or 24
                         } // end detection is empty
@@ -346,10 +349,12 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 //sets turret position
                 turretServo.setPosition(currentTurretPosition);
             }
-            else if (gamepad2.leftStickButtonWasPressed() && !Double.isNaN(targetServoPos)) {
+           /* else if (gamepad2.leftStickButtonWasPressed() && !Double.isNaN(targetServoPos)) {
                 currentTurretPosition = targetServoPos;
                 turretServo.setPosition(targetServoPos);
             }
+
+            */
             /*    telemetry.addData("TurretPos", "%.3f", currentTurretPosition);
                 telemetry.addData("Turret Min/Max/Inc", "%.3f / %.3f / %.3f", TURRET_ROTATION_MIN, TURRET_ROTATION_MAX, TURRET_ROTATION_INCREMENT); */
 
