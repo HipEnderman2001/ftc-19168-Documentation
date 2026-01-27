@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.team.fsm;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 @Config
 public class ShootTripleFSM {
@@ -55,7 +56,7 @@ public class ShootTripleFSM {
 
         int[] motif = null;
         // Motif order: 1=TRAY_POS_1_SCORE, 2=TRAY_POS_2_SCORE, 3=TRAY_POS_3_SCORE
-        motif = new int[]{1, 2, 3};
+        motif = new int[]{1, 3, 2};
 
         if (nbMotifIndex >= motif.length) {
             nbShootingActive = false;
@@ -75,12 +76,12 @@ public class ShootTripleFSM {
                 }
                 break;
             case ROTATE_TRAY: // Move tray
-                double targetPos = (motif[nbMotifIndex] == 1) ? DarienOpModeFSM.TRAY_POS_3_SCORE :
+                double targetPos = (motif[nbMotifIndex] == 1) ? DarienOpModeFSM.TRAY_POS_1_SCORE :
                         (motif[nbMotifIndex] == 2) ? DarienOpModeFSM.TRAY_POS_2_SCORE :
-                                DarienOpModeFSM.TRAY_POS_1_SCORE;
+                                DarienOpModeFSM.TRAY_POS_3_SCORE;
                 //opMode.servoIncremental(opMode.TrayServo, targetPos, opMode.currentTrayPosition, 1, 4);
                 //opMode.currentTrayPosition = targetPos;
-                opMode.setTrayPosition(targetPos);
+                opMode.TrayServo.setPosition(targetPos);
                 nbLastActionTime = currentTime;
                 nbStep = Stage.WAIT_FOR_ROTATE;
                 shotStarted = false; // Reset for next shot
@@ -107,6 +108,7 @@ public class ShootTripleFSM {
             case DONE:
                 nbShootingActive = false;
                 shootArtifactFSM.setEjectionMotorsControlledByPattern(false);
+                opMode.TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_1_INTAKE); // get ready for intake
                 break;
         }
         opMode.telemetry.addData("Actual ShotGun RPM", opMode.ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM

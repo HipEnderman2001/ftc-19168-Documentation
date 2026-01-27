@@ -65,12 +65,12 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
     // HARDWARE TUNING CONSTANTS
     public static double TRAY_SERVO_DURATION_ROTATE = 1.5; // seconds
-    public static double TRAY_POS_1_INTAKE = 0.21;//275
-    public static double TRAY_POS_2_INTAKE = 0.279;//205
+    public static double TRAY_POS_1_INTAKE = 0.279;//275
+    public static double TRAY_POS_2_INTAKE = 0.210;//205
     public static double TRAY_POS_3_INTAKE = 0.355;
-    public static double TRAY_POS_1_SCORE = 0.39;
-    public static double TRAY_POS_2_SCORE = 0.318;
-    public static double TRAY_POS_3_SCORE = 0.248;
+    public static double TRAY_POS_1_SCORE = 0.390;
+    public static double TRAY_POS_2_SCORE = 0.248;
+    public static double TRAY_POS_3_SCORE = 0.318;
     public static final double ELEVATOR_POS_UP = 0.85;
     public static final double ELEVATOR_POS_DOWN = 0.45;
     public static double SHOT_GUN_POWER_UP = 0.60;

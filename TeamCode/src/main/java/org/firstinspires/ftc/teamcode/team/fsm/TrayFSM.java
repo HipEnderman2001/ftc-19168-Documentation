@@ -35,7 +35,7 @@ public class TrayFSM {
     private final ElapsedTime timer = new ElapsedTime();
 
     // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 3..1)
-    private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_3_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE, DarienOpModeFSM.TRAY_POS_1_INTAKE};
+    private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_3_INTAKE, DarienOpModeFSM.TRAY_POS_1_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE};
 
 
     // Internal state
@@ -284,6 +284,7 @@ public class TrayFSM {
                 topIntake.setPower(0.0);
                 //rightIntake.setPower(0.0);
                 //leftIntake.setPower(0.0);
+                opMode.TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_2_SCORE);
                 break;
         }
 
