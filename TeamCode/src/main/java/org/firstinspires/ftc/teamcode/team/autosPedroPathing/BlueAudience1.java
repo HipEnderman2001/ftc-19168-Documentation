@@ -55,6 +55,8 @@ public class BlueAudience1 extends DarienOpModeFSM {
         waitForStart();
         if (isStopRequested()) return;
 
+        targetGoalId = APRILTAG_ID_GOAL_BLUE;
+
         opmodeTimer.resetTimer();
         setPathState(0);
 

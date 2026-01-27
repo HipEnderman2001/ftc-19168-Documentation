@@ -178,14 +178,14 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 // -----------------
 
                 //CONTROL: POINT TURRET TO GOAL
-                if (gamepad2.b && !isReadingAprilTag) {
+                if ((gamepad2.b && !isReadingAprilTag) || (gamepad2.right_bumper && targetGoalId == APRILTAG_ID_GOAL_RED)) {
                     // ALIGN TO RED GOAL
                     tagFSM.start(getRuntime());
                     isReadingAprilTag = true;
                     targetGoalTagId = APRILTAG_ID_GOAL_RED;
                     turretOffset = TURRET_OFFSET_RED;
                     telemetry.addLine("ALIGN TURRET TO RED!");
-                } else if (gamepad2.x && !isReadingAprilTag) {
+                } else if ((gamepad2.x && !isReadingAprilTag) || (gamepad2.right_bumper && targetGoalId == APRILTAG_ID_GOAL_BLUE)) {
                     // ALIGN TO BLUE GOAL
                     tagFSM.start(getRuntime());
                     isReadingAprilTag = true;

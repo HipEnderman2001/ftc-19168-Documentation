@@ -58,6 +58,8 @@ public class RedAudience1 extends DarienOpModeFSM {
         opmodeTimer.resetTimer();
         setPathState(0);
 
+        targetGoalId = APRILTAG_ID_GOAL_RED;
+
         // Set the initial tray position immediately.
         setTrayPosition(TRAY_POS_1_SCORE);
 

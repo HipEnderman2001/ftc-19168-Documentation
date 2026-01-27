@@ -101,6 +101,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     // DYNAMIC VARIABLES
     public double currentTrayPosition;
     public double currentTurretPosition;
+
+    public int targetGoalId = 0;
     public enum ShotgunPowerLevel {
         OFF,
         LOW,
