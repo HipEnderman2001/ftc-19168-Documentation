@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.team.DarienOpMode;
+
 import java.util.Arrays;
 
 /**
@@ -21,7 +23,7 @@ import java.util.Arrays;
 @Config
 public class TrayFSM {
     public enum SlotState { EMPTY, PURPLE, GREEN, UNKNOWN }
-    private enum State { IDLE, POSITION_TO_SLOT, INTAKE_WAIT, CHECK_SLOT, DONE }
+    private enum State { IDLE, POSITION_TO_SLOT, INTAKE_WAIT, CHECK_SLOT, FINISHING, DONE }
 
     private final DarienOpModeFSM opMode;
 
@@ -122,7 +124,7 @@ public class TrayFSM {
          windowIndex = 0;
          currentSlotIndex = findNextEmptySlot(0);
          if (currentSlotIndex < 0) {
-             state = State.DONE;
+             state = State.FINISHING;
              return;
          }
          state = State.POSITION_TO_SLOT;
@@ -234,7 +236,7 @@ public class TrayFSM {
                     // Determine next empty slot index. We will move there after BALL_SETTLE_TIME.
                     int next = findNextEmptySlot(currentSlotIndex + 1);
                     if (next < 0) {
-                        state = State.DONE;
+                        state = State.FINISHING;
                     } else {
                         currentSlotIndex = next;
                         // enter settling state; CHECK_SLOT will handle the post-detection delay
@@ -252,7 +254,7 @@ public class TrayFSM {
                      slots[currentSlotIndex] = SlotState.EMPTY;
                      int next = findNextEmptySlot(currentSlotIndex + 1);
                      if (next < 0) {
-                         state = State.DONE;
+                         state = State.FINISHING;
                      } else {
                          currentSlotIndex = next;
                          moveToSlot(currentSlotIndex);
@@ -276,6 +278,10 @@ public class TrayFSM {
                     telemetry.addData("State", "SETTLING for %.2fs", BALL_SETTLE_TIME - (timer.seconds() - stateStartTime));
                 }
                 break;
+            case FINISHING:
+                opMode.TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_1_SCORE);
+                state = State.DONE;
+                break;
 
             case DONE:
                 telemetry.addData("TrayFSM", "DONE");
@@ -284,7 +290,6 @@ public class TrayFSM {
                 topIntake.setPower(0.0);
                 //rightIntake.setPower(0.0);
                 //leftIntake.setPower(0.0);
-                opMode.TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_2_SCORE);
                 break;
         }
 
@@ -445,7 +450,7 @@ public class TrayFSM {
     public void stopAutoIntake() {
         rubberBands.setPower(0.0);
         topIntake.setPower(0.0);
-        state = State.DONE;
+        state = State.FINISHING;
     }
 
     /**

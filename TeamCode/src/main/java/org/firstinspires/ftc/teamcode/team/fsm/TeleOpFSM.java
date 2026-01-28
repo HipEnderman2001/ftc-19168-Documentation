@@ -27,6 +27,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
     // TUNING CONSTANTS
     public static double INTAKE_TIME = 1;
     public static double SHOT_TIMEOUT = 2.0; // seconds
+    public static double ROTATION_SCALE = 0.5;
 
     // VARIABLES
     private double shotStartTime;
@@ -115,7 +116,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
             // -----------------
             // ALWAYS RUN
             // -----------------
-            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * ROTATION_SCALE, true);
             follower.update();
             leftIntake.setPower(-INTAKE_INTAKE_ROLLER_POWER);
             rightIntake.setPower(INTAKE_INTAKE_ROLLER_POWER);
@@ -320,6 +321,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     // ONLY UPDATE IF IN MACRO CONTROL MODE
                     shootTripleFSM.updateShootTriple(getRuntime());
                     if (shootTripleFSM.isDone() || getRuntime() - tripleShotStartTime >= 10) {
+                        TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_3_INTAKE);
                         tripleShotStarted = false;
                     }
                 }

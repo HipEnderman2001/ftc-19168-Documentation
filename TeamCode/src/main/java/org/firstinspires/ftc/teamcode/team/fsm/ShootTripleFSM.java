@@ -56,7 +56,7 @@ public class ShootTripleFSM {
 
         int[] motif = null;
         // Motif order: 1=TRAY_POS_1_SCORE, 2=TRAY_POS_2_SCORE, 3=TRAY_POS_3_SCORE
-        motif = new int[]{1, 3, 2};
+        motif = new int[]{1, 2, 3};
 
         if (nbMotifIndex >= motif.length) {
             nbShootingActive = false;
@@ -108,7 +108,6 @@ public class ShootTripleFSM {
             case DONE:
                 nbShootingActive = false;
                 shootArtifactFSM.setEjectionMotorsControlledByPattern(false);
-                opMode.TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_1_INTAKE); // get ready for intake
                 break;
         }
         opMode.telemetry.addData("Actual ShotGun RPM", opMode.ejectionMotor.getVelocity() * 60 / 28); // convert from ticks per second to RPM
