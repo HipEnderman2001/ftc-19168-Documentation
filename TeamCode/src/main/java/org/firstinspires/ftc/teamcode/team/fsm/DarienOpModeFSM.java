@@ -79,7 +79,20 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double SHOT_GUN_POWER_UP_FAR_RPM_AUTO = 800; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_UP_FAR_RPM_TELEOP = 850; // tuned to 6000 rpm motor
     public static double SHOT_GUN_POWER_DOWN = 0.2; // tuned to 6000 rpm motor
-    public static final double TIMEOUT_APRILTAG_DETECTION = 3;
+
+    // For FTC AprilTag detection with a Logitech C910 webcam,
+    // 1.0 to 1.5 seconds is typically sufficient and more reasonable than 3 seconds.
+    // Recommended timeout values:
+    //   1.0 second (1000ms): Good for typical autonomous scenarios where the camera has a clear view of tags
+    //   1.5 seconds (1500ms): More conservative, allows for slight delays in camera initialization or processing
+    //   0.5 seconds (500ms): Can work if tags are large, close, and well-lit, but may be too aggressive
+    // Factors to consider:
+    //   Camera exposure: The C910 may need 1-2 frames to adjust exposure in varying light conditions
+    //   Processing time: AprilTag detection typically runs at 10-30 FPS, so 1 second gives 10-30 detection attempts
+    //   Distance/size: Tags further away or smaller may need slightly more time
+    //   Lighting: Poor lighting may require longer timeout
+    public static final double TIMEOUT_APRILTAG_DETECTION = 1.0; // seconds
+
     public static double INTAKE_RUBBER_BANDS_POWER = 1;
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.3;
     public static double INTAKE_INTAKE_ROLLER_POWER = 1;
