@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
@@ -50,6 +51,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public Servo TrayServo, Elevator, turretServo;
     public CRServo topIntake, rightIntake, leftIntake;
     public DcMotorEx ejectionMotor, rubberBands;
+    public DigitalChannel ledRightGreen, ledLeftGreen, ledRightRed, ledLeftRed;
 
     public NormalizedColorSensor intakeColorSensor;
 
@@ -159,6 +161,13 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         ejectionMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         ejectionMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(EJECTION_P,EJECTION_I,EJECTION_D,EJECTION_F));
 
+        //INITIALIZE LED
+        ledRightGreen = hardwareMap.get(DigitalChannel.class, "LEDRight1");
+        ledLeftGreen = hardwareMap.get(DigitalChannel.class, "LEDLeft1");
+        ledRightRed = hardwareMap.get(DigitalChannel.class, "LEDRight2");
+        ledLeftRed = hardwareMap.get(DigitalChannel.class, "LEDLeft2");
+        setLedRed();
+
 
         initAprilTag();
 
@@ -166,7 +175,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
-        trayFSM = new TrayFSM(this, TrayServo, rubberBands, topIntake, rightIntake, leftIntake, intakeColorSensor, telemetry);
+        trayFSM = new TrayFSM(this, TrayServo, rubberBands, topIntake, rightIntake, leftIntake, intakeColorSensor, telemetry, ledRightGreen, ledLeftGreen, ledRightRed, ledLeftRed);
         shootTripleFSM = new ShootTripleFSM(this);
         shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
         turretFSM = new TurretFSM(this);
@@ -284,6 +293,56 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         }
 
     }
+
+    public void setLedRed() {
+        ledLeftGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftGreen.setState(false); // LOW turns LED on (typically)
+        ledLeftRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftRed.setState(true);
+        ledRightGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightGreen.setState(false);
+        ledRightRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightRed.setState(true);
+    }
+
+    public void setLedGreen() {
+        ledLeftGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftGreen.setState(true); // HIGH turns LED off (typically)
+        ledLeftRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftRed.setState(false);
+        ledRightGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightGreen.setState(true);
+        ledRightRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightRed.setState(false);
+    }
+
+    public void setLedAmber() {
+        ledLeftGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftGreen.setState(false);
+        ledLeftRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftRed.setState(false);
+        ledRightGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightGreen.setState(false);
+        ledRightRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightRed.setState(false);
+    }
+
+    public void setLedOff() {
+        ledLeftGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftGreen.setState(true); // HIGH turns LED off (typically)
+        ledLeftRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledLeftRed.setState(true);
+        ledRightGreen.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightGreen.setState(true);
+        ledRightRed.setMode(DigitalChannel.Mode.OUTPUT);
+        ledRightRed.setState(true);
+    }
+
+    //Red when start
+    //amber when intaking
+    //green when done intaking
+    //amber when shooting
+    //red when done shooting
 
     /** Clamp a value between a minimum and maximum.
      *

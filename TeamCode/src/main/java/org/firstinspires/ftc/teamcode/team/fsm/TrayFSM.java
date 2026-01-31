@@ -3,8 +3,11 @@ package org.firstinspires.ftc.teamcode.team.fsm;
 import android.graphics.Color;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.LED;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -34,6 +37,10 @@ public class TrayFSM {
     private final NormalizedColorSensor colorSensor;
     private final Telemetry telemetry;
     private final ElapsedTime timer = new ElapsedTime();
+    private final DigitalChannel ledRight1;
+    private final DigitalChannel ledLeft1;
+    private final DigitalChannel ledRight2;
+    private final DigitalChannel ledLeft2;
 
     // Slot servo target positions for intake slots (0..2 correspond to tray intake positions 3..1)
     private final double[] slotPositions = new double[]{DarienOpModeFSM.TRAY_POS_3_INTAKE, DarienOpModeFSM.TRAY_POS_1_INTAKE, DarienOpModeFSM.TRAY_POS_2_INTAKE};
@@ -96,7 +103,7 @@ public class TrayFSM {
     private double servoIgnoreUntil = 0.0;
 
     // Constructor: initialize final hardware fields and detection window
-    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, DcMotorEx rubberBands, CRServo topIntake, CRServo rightIntake, CRServo leftIntake, NormalizedColorSensor colorSensor, Telemetry telemetry) {
+    public TrayFSM(DarienOpModeFSM opMode, Servo trayServo, DcMotorEx rubberBands, CRServo topIntake, CRServo rightIntake, CRServo leftIntake, NormalizedColorSensor colorSensor, Telemetry telemetry, DigitalChannel ledRight1, DigitalChannel ledLeft1, DigitalChannel ledRight2, DigitalChannel ledLeft2) {
         this.opMode = opMode;
         this.trayServo = trayServo;
         this.rubberBands = rubberBands;
@@ -105,6 +112,10 @@ public class TrayFSM {
         this.leftIntake = leftIntake;
         this.colorSensor = colorSensor;
         this.telemetry = telemetry;
+        this.ledRight1 = ledRight1;
+        this.ledLeft1 = ledLeft1;
+        this.ledRight2 = ledRight2;
+        this.ledLeft2 = ledLeft2;
 
         // initialize slot states and detection window
         Arrays.fill(slots, SlotState.EMPTY);
@@ -117,18 +128,19 @@ public class TrayFSM {
 
     // Start the automatic intake process. This will clear previous slot data and begin at first empty intake slot.
     public void startAutoIntake() {
+        opMode.setLedRed();
         Arrays.fill(slots, SlotState.EMPTY);
         // reset detection window so previous readings don't affect new intake
         Arrays.fill(detectionWindow, SlotState.EMPTY);
-         windowIndex = 0;
-         currentSlotIndex = findNextEmptySlot(0);
-         if (currentSlotIndex < 0) {
-             state = State.FINISHING;
-             return;
-         }
-         state = State.POSITION_TO_SLOT;
-         stateStartTime = timer.seconds();
-         moveToSlot(currentSlotIndex);
+        windowIndex = 0;
+        currentSlotIndex = findNextEmptySlot(0);
+        if (currentSlotIndex < 0) {
+            state = State.FINISHING;
+            return;
+        }
+        state = State.POSITION_TO_SLOT;
+        stateStartTime = timer.seconds();
+        moveToSlot(currentSlotIndex);
      }
 
     // Call this periodically (e.g., opmode loop)

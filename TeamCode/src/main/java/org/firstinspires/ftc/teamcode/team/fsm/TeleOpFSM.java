@@ -170,6 +170,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
             trayFSM.update();
             if (!trayFSM.isAutoIntakeRunning() && shotgunPowerLatch != ShotgunPowerLevel.OFF) {
                 shotgunFSM.toPowerUp();
+                setLedGreen();
             }
 
 
@@ -325,6 +326,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     // ONLY UPDATE IF IN MACRO CONTROL MODE
                     shootTripleFSM.updateShootTriple(getRuntime());
                     if (shootTripleFSM.isDone() || getRuntime() - tripleShotStartTime >= 10) {
+                        setLedOff();
                         TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_3_INTAKE);
                         tripleShotStarted = false;
                     }

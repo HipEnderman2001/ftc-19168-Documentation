@@ -42,6 +42,7 @@ public class ShootTripleFSM {
      */
 
     public void startShootTriple(double currentTime, double shootingPower) {
+        opMode.setLedAmber();
         nbMotifIndex = 0;
         nbShootingActive = true;
         shootPower = shootingPower;
