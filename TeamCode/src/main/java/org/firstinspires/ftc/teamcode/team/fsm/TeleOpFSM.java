@@ -169,7 +169,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
             // Update trayFSM state machine each loop so it can run when toggled on
             trayFSM.update();
             if (!trayFSM.isAutoIntakeRunning() && shotgunPowerLatch != ShotgunPowerLevel.OFF) {
-                shotgunFSM.toPowerUp();
                 setLedGreen();
             }
 
@@ -387,7 +386,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                         break;
                     default:
                     case LOW:
-                        shotgunFSM.toPowerUp();
+                        shotgunFSM.toPowerUp(SHOT_GUN_POWER_UP_RPM);
                         telemetry.addData("Requested ShotGun RPM", SHOT_GUN_POWER_UP_RPM);
                         break;
                 }

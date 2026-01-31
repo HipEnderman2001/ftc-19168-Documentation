@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.team.MotorHelper;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -37,6 +38,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public ShootTripleFSM shootTripleFSM;
     public ShotgunFSM shotgunFSM;
     public TurretFSM turretFSM;
+    public MotorHelper MotorHelper;
 
     // AprilTag
     public ArrayList<AprilTagDetection> aprilTagDetections;
@@ -103,10 +105,26 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     public static double TURRET_ROTATION_MAX_LEFT = 0.63;
     public static double TURRET_ROTATION_MAX_RIGHT = 0.35;
     public static double TURRET_POSITION_CENTER = 0.5;
+
+    // PIDF Constants for DcMotorEx.setVelocityPIDFCoefficients()
     public static double EJECTION_P=15;
     public static double EJECTION_I=3;
     public static double EJECTION_D=0;
     public static double EJECTION_F=12.5;
+
+    // PID Constants for custom MotorHelper PID functions
+    public static double SHOT_GUN_PGAIN = 0.01;
+    public static double SHOT_GUN_PGAIN2 = 0.01;
+    public static double SHOT_GUN_IGAIN = 0.0001;
+    public static double SHOT_GUN_PDUTY_MIN = -0.5;
+    public static double SHOT_GUN_PDUTY_MAX = 1;
+    public static double SHOT_GUN_IDUTY_MIN = 0;
+    public static double SHOT_GUN_IDUTY_MAX = 1;
+    public static double SHOT_GUN_POWER_MIN = 0;
+    public static double SHOT_GUN_POWER_MAX = 1;
+    public static double SHOT_GUN_GAIN = 1;
+    public static double SHOT_GUN_MIN_RPM = 0;
+    public static double SHOT_GUN_MAX_RPM = 1000;
 
     public final int APRILTAG_ID_GOAL_BLUE = 20;
     public final int APRILTAG_ID_GOAL_RED = 24;
@@ -159,7 +177,8 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
         ejectionMotor = hardwareMap.get(DcMotorEx.class, "ejectionMotor");
         ejectionMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
-        ejectionMotor.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(EJECTION_P,EJECTION_I,EJECTION_D,EJECTION_F));
+        ejectionMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        //ejectionMotor.setVelocityPIDFCoefficients(EJECTION_P, EJECTION_I, EJECTION_D, EJECTION_F);
 
         //INITIALIZE LED
         ledRightGreen = hardwareMap.get(DigitalChannel.class, "LEDRight1");
@@ -171,13 +190,15 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
 
         initAprilTag();
 
+        MotorHelper = new MotorHelper(telemetry, TICKS_PER_ROTATION);
+
         // INSTANTIATE THE STATE MACHINES
         tagFSM = new AprilTagDetectionFSM(aprilTag, TIMEOUT_APRILTAG_DETECTION);
         shootArtifactFSM = new ShootArtifactFSM(this);
         shootPatternFSM = new ShootPatternFSM(this);
         trayFSM = new TrayFSM(this, TrayServo, rubberBands, topIntake, rightIntake, leftIntake, intakeColorSensor, telemetry, ledRightGreen, ledLeftGreen, ledRightRed, ledLeftRed);
         shootTripleFSM = new ShootTripleFSM(this);
-        shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this);
+        shotgunFSM = new ShotgunFSM(SHOT_GUN_POWER_UP, SHOT_GUN_POWER_UP_FAR, ejectionMotor, this, MotorHelper);
         turretFSM = new TurretFSM(this);
 
         //trayServoFSM = new ServoIncrementalFSM(TrayServo);
@@ -290,6 +311,17 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
         catch (Exception e) {
             // telemetry.addData("Ticks/Sec Adjustment Error", e.getMessage());
             return requestedRPM; // if error, return requested power unmodified
+        }
+
+    }
+
+    public double getRpmFromTicksPerSecond(double ticksPerSecond) {
+        try {
+            double rpm = (ticksPerSecond * 60.0) / TICKS_PER_ROTATION;
+            return rpm;
+        } catch (Exception e) {
+            // telemetry.addData("RPM from Ticks/Sec Error", e.getMessage());
+            return ticksPerSecond; // if error, return requested power unmodified
         }
 
     }
