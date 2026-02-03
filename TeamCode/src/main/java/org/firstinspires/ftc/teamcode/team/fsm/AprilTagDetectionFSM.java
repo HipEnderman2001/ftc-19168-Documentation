@@ -29,7 +29,8 @@ public class AprilTagDetectionFSM {
         ArrayList<AprilTagDetection> currentDetections = aprilTag.getDetections();
         double elapsed = currentTime - startTime;
         if (!currentDetections.isEmpty() || elapsed >= timeoutSeconds) {
-            detections = currentDetections;
+            // Create a defensive copy to prevent ConcurrentModificationException
+            detections = new ArrayList<>(currentDetections);
             if (debug) {
                 telemetryAprilTag(telemetry);
             }
@@ -53,7 +54,7 @@ public class AprilTagDetectionFSM {
 
         // Step through the list of detections and display info for each one.
         for (AprilTagDetection detection : detections) {
-            if (detection.metadata != null) {
+            if (detection.metadata != null && detection.ftcPose != null) {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
                 telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
                 telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));

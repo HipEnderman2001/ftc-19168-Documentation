@@ -440,7 +440,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 telemetry.addLine("Goal Detection: FOUND APRILTAG!");
                 // Rotate the turret only if an apriltag is detected and it's the target goal apriltag id
                 detection = aprilTagDetections.get(0);
-                if (detection.id == targetGoalTagId) {
+                if (detection.id == targetGoalTagId && detection.ftcPose != null) {
                     telemetry.addLine("Goal Detection: ALIGNING TURRET TO GOAL " + targetGoalTagId);
                     yaw = detection.ftcPose.yaw; // TODO: REMOVE LATER SINCE IT'S ONLY FOR TELEMETRY
 
@@ -458,6 +458,8 @@ public class TeleOpFSM extends DarienOpModeFSM {
                             turretServo.setPosition(targetServoPos);
                         }
                     }
+                } else if (detection.ftcPose == null) {
+                    telemetry.addLine("Goal Detection: WARNING - Pose estimation failed!");
                 } // end detection.id == 20 or 24
             } // end detection is empty
         } // end tagFSM is done
