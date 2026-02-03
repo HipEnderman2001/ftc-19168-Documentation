@@ -42,6 +42,11 @@ public class TeleOpFSM extends DarienOpModeFSM {
     private boolean prevBackButton = false;
     private ShotgunPowerLevel shotgunPowerLatch = ShotgunPowerLevel.LOW;
 
+    private enum TurretStates {MANUAL, AUTO}
+
+    ;
+    private TurretStates turretState = TurretStates.MANUAL;
+
     // AUTOMATIC TURRET CONTROLS BASED ON CAMERA APRILTAG DETECTION
     AprilTagDetection detection;
     double yaw; // Stores detection.ftcPose.yaw
@@ -284,7 +289,7 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
                  */
 
-                // Edge-triggered start: press right bumper to start triple shoot
+                // Edge-triggered start: press right bumper to start triple shoot, Triple shot
                 if (gamepad2.right_bumper && gamepad2.right_stick_y < -0.05) {
                     // First, read April tag
                     startReadingGoalId();
@@ -294,11 +299,13 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP_FAR);
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
+                    turretState = TurretStates.AUTO;
                 } else if (gamepad2.right_bumper) {
                     startReadingGoalId();
                     shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP);
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
+                    turretState = TurretStates.AUTO;
                 }
 
                 telemetry.addData("shotStarted", shotStarted);
@@ -324,6 +331,9 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 else if (tripleShotStarted) {
                     // ONLY UPDATE IF IN MACRO CONTROL MODE
                     shootTripleFSM.updateShootTriple(getRuntime());
+                    if (!isReadingAprilTag && turretState == TurretStates.AUTO) {
+                        startReadingGoalId();
+                    }
                     if (shootTripleFSM.isDone() || getRuntime() - tripleShotStartTime >= 10) {
                         setLedOff();
                         TrayServo.setPosition(DarienOpModeFSM.TRAY_POS_3_INTAKE);
@@ -349,12 +359,14 @@ public class TeleOpFSM extends DarienOpModeFSM {
                 currentTurretPosition = clampT(currentTurretPosition + TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
                 //sets turret position
                 turretServo.setPosition(currentTurretPosition);
+                turretState = TurretStates.MANUAL;
             }
             else if (gamepad2.left_stick_x >= 0.05) {   //turn turret counterclockwise
                 //updating the current turret position to be in range of the min and max
                 currentTurretPosition = clampT(currentTurretPosition - TURRET_ROTATION_INCREMENT, TURRET_ROTATION_MAX_LEFT, TURRET_ROTATION_MAX_RIGHT);
                 //sets turret position
                 turretServo.setPosition(currentTurretPosition);
+                turretState = TurretStates.MANUAL;
             }
            /* else if (gamepad2.leftStickButtonWasPressed() && !Double.isNaN(targetServoPos)) {
                 currentTurretPosition = targetServoPos;
