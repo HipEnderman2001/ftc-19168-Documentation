@@ -95,7 +95,7 @@ public abstract class DarienOpModeFSM extends LinearOpMode {
     //   Processing time: AprilTag detection typically runs at 10-30 FPS, so 1 second gives 10-30 detection attempts
     //   Distance/size: Tags further away or smaller may need slightly more time
     //   Lighting: Poor lighting may require longer timeout
-    public static final double TIMEOUT_APRILTAG_DETECTION = 1.0; // seconds
+    public static double TIMEOUT_APRILTAG_DETECTION = 0.75; // seconds
 
     public static double INTAKE_RUBBER_BANDS_POWER = 1;
     public static double OUTPUT_RUBBER_BANDS_POWER = 0.3;

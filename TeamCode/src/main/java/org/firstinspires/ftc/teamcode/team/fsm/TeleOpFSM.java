@@ -161,13 +161,6 @@ public class TeleOpFSM extends DarienOpModeFSM {
             }
             prevRightBumper1 = gamepad1.right_bumper;
 
-            // Toggle auto-intake on back button press
-            if (gamepad2.back && !prevBackButton) {
-                // toggle the TrayFSM instance (from DarienOpModeFSM)
-                trayFSM.toggleAutoIntake();
-            }
-            prevBackButton = gamepad2.back;
-
             // Show current auto-intake status on telemetry
             telemetry.addData("AutoIntakeRunning", trayFSM != null && trayFSM.isAutoIntakeRunning());
 
@@ -263,6 +256,17 @@ public class TeleOpFSM extends DarienOpModeFSM {
                     setTrayPosition(TRAY_POS_3_SCORE);
                 }
 
+                /*
+                // DRIVER 1 MANUAL CONTROLS FOR INTAKE TRAY POSITIONS
+                if (gamepad1.dpad_left) {
+                    setTrayPosition(TRAY_POS_1_INTAKE);
+                } else if (gamepad1.dpad_up) {
+                    setTrayPosition(TRAY_POS_2_INTAKE);
+                } else if (gamepad1.dpad_right) {
+                    setTrayPosition(TRAY_POS_3_INTAKE);
+                }
+                 */
+
                 // -----------------
                 // IMPORTANT: ALWAYS PUT MACRO CONTROLS AFTER MANUAL CONTROLS
                 // -----------------
@@ -291,16 +295,20 @@ public class TeleOpFSM extends DarienOpModeFSM {
 
                 // Edge-triggered start: press right bumper to start triple shoot, Triple shot
                 if (gamepad2.right_bumper && gamepad2.right_stick_y < -0.05) {
-                    // First, read April tag
+                    //stop auto intake if running
+                    if (trayFSM.isAutoIntakeRunning()) {
+                        trayFSM.toggleAutoIntake();
+                    }
                     startReadingGoalId();
-                    //Second, align turret to Red or Blue goal
-
-                    //Finally, start triple sharp shot
                     shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP_FAR);
                     tripleShotStartTime = getRuntime();
                     tripleShotStarted = true;
                     turretState = TurretStates.AUTO;
                 } else if (gamepad2.right_bumper) {
+                    //stop auto intake if running
+                    if (trayFSM.isAutoIntakeRunning()) {
+                        trayFSM.toggleAutoIntake();
+                    }
                     startReadingGoalId();
                     shootTripleFSM.startShootTriple(getRuntime(), SHOT_GUN_POWER_UP);
                     tripleShotStartTime = getRuntime();
